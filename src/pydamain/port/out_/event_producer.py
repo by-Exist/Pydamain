@@ -1,6 +1,6 @@
 from abc import abstractmethod, ABCMeta
 
-from pydamain.domain.message import Event
+from pydamain.domain import Event
 
 
 class AbstractEventProducer(metaclass=ABCMeta):
