@@ -10,66 +10,73 @@ from .typing import AsyncHandler, Handler, SyncHandler
 # ============================================================================
 # Command
 # ============================================================================
-FirstPosOnlyArgType = TypeVar("FirstPosOnlyArgType")
-CommandHandler = Handler[FirstPosOnlyArgType, Any] | None
+C = TypeVar("C", bound="Command")
+CommandHandler = Handler[C, Any]
 
 
 class Command(BaseMessage):
 
-    handler: ClassVar[CommandHandler[Any]] = None
+    handler: ClassVar[CommandHandler[Any]] = None  # type: ignore
 
     async def handle(self, deps: dict[str, Any]):
+        self.pre_handle()
         events = await asyncio.create_task(self._handle(deps))
-        await asyncio.gather(
-            *(event.handle(deps) for event in events), return_exceptions=True
-        )
+        self.post_handle()
+        await handle_events(events, deps)
 
     async def _handle(self, deps: dict[str, Any]):
         if not self.handler:
             return list[Event]()
         with EventCatcher() as event_catcher:
-            await handles_message(self, self.handler, deps)
+            await handle(self, type(self).handler, deps)
         return event_catcher.events
 
 
 # ============================================================================
 # Event
 # ============================================================================
-EventHandlers = Iterable[Handler[FirstPosOnlyArgType, Any]]
+E = TypeVar("E", bound="Event")
+EventHandlers = Iterable[Handler[E, Any]]
 
 
 class Event(BaseMessage):
 
     handlers: ClassVar[EventHandlers[Any]] = []
 
-    __event_type_registry__: ClassVar[
+    __event_subclass_registry__: ClassVar[
         WeakValueDictionary[str, type["Event"]]
     ] = WeakValueDictionary()
 
     def __init_subclass__(cls) -> None:
         cls.handlers = set(cls.handlers)
-        cls.__event_type_registry__[cls.__name__] = cls
+        cls.__event_subclass_registry__[cls.__name__] = cls
 
     def issue(self):
         event_list = events_context_var.get()
         event_list.append(self)
 
-    async def handle(self, deps: dict[str, Any]):
-        events = await asyncio.create_task(self._handle(deps))
-        await asyncio.gather(
-            *(event.handle(deps) for event in events), return_exceptions=True
-        )
-
     async def _handle(self, deps: dict[str, Any]):
+        self.pre_handle()
+        events = await asyncio.create_task(self.__handle(deps))
+        self.post_handle()
+        await handle_events(events, deps)
+
+    async def __handle(self, deps: dict[str, Any]):
         with EventCatcher() as event_catcher:
             await asyncio.gather(
-                *(
-                    handles_message(self, handler, deps)
-                    for handler in self.handlers
-                ),
+                *(handle(self, handler, deps) for handler in self.handlers),
                 return_exceptions=True,
             )
         return event_catcher.events
+
+
+async def handle_events(
+    events: Iterable[Event],
+    deps: dict[str, Any],
+    ignore_exception: bool = True,
+):
+    coros = (event._handle(deps) for event in events)  # type: ignore
+    await asyncio.gather(*coros, return_exceptions=ignore_exception)
 
 
 # ============================================================================
@@ -79,9 +86,7 @@ M = TypeVar("M", bound=BaseMessage)
 R = TypeVar("R")
 
 
-async def handles_message(
-    msg: M, handler: Handler[M, R], deps: dict[str, Any]
-) -> R:
+async def handle(msg: M, handler: Handler[M, R], deps: dict[str, Any]) -> R:
     if asyncio.iscoroutinefunction(handler):
         handler = cast(AsyncHandler[M, R], handler)
         return await handler(msg, **deps)

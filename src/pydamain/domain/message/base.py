@@ -20,3 +20,9 @@ class BaseMessage(BaseModel):
         allow_population_by_field_name = True
         json_loads = orjson.loads
         json_dumps = orjson_dumps
+
+    def pre_handle(self):
+        ...
+
+    def post_handle(self):
+        ...
