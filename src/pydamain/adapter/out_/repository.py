@@ -3,7 +3,7 @@ from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from pydamain.domain.model import Aggregate
+from pydamain.domain import Aggregate
 from pydamain.port.out_.repository import AbstractRepository
 
 
