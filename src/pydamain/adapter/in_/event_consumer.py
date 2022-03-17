@@ -4,7 +4,8 @@ from aiokafka import AIOKafkaConsumer  # type: ignore
 
 from pydantic import BaseModel
 
-from pydamain.domain.message import Event, deserialize_external_event
+from pydamain.domain import Event
+from pydamain.adapter.out_.event_producer import jsonb_to_event
 from pydamain.port.in_.event_consumer import AbstractEventConsumer
 
 
@@ -23,7 +24,7 @@ class BaseKafkaEventConsumer(AbstractEventConsumer):
         self.aiokafka_consumer = AIOKafkaConsumer(
             self.topic,
             bootstrap_servers=f"{self.host}:{self.port}",
-            value_deserializer=KafkaEvent.parse_raw,
+            value_deserializer=jsonb_to_event,
             group_id=type(self).__name__,
             enable_auto_commit=False,
             auto_offset_reset="earliest",
@@ -37,12 +38,9 @@ class BaseKafkaEventConsumer(AbstractEventConsumer):
         ...
 
     async def consume(self):
-        async for msg in self.aiokafka_consumer:  # type: ignore
-            msg = cast(KafkaEvent, msg)
-            event = deserialize_external_event(
-                type_=msg.event_type, json=msg.event
-            )
+        async for event in self.aiokafka_consumer:  # type: ignore
+            event = cast(Event, event)
             self.pre_consume(event)
-            await event.handle(self.deps)
+            await event._handle(self.deps)  # type: ignore
             await self.aiokafka_consumer.commit()  # type: ignore
             self.post_consume(event)
