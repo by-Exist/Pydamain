@@ -1,22 +1,42 @@
 from contextvars import ContextVar
-from typing import Any, ClassVar, Iterable, TypeVar, cast
+from typing import (
+    Any,
+    Awaitable,
+    Callable,
+    ClassVar,
+    Concatenate,
+    Iterable,
+    ParamSpec,
+    TypeVar,
+    cast,
+)
 from weakref import WeakValueDictionary
 import asyncio
 
 from .base import BaseMessage
-from .typing import AsyncHandler, Handler, SyncHandler
+
+
+# ============================================================================
+# Typing
+# ============================================================================
+M = TypeVar("M")
+R = TypeVar("R")
+P = ParamSpec("P")
+SyncHandler = Callable[Concatenate[M, P], R]
+AsyncHandler = Callable[Concatenate[M, P], Awaitable[R]]
+Handler = SyncHandler[M, P, R] | AsyncHandler[M, P, R]
 
 
 # ============================================================================
 # Command
 # ============================================================================
 C = TypeVar("C", bound="Command")
-CommandHandler = Handler[C, Any]
+CommandHandler = Handler[C, ..., Any]
 
 
 class Command(BaseMessage):
 
-    handler: ClassVar[CommandHandler[Any]] = None  # type: ignore
+    handler: ClassVar[CommandHandler["Command"]] = None  # type: ignore
 
     async def handle(self, deps: dict[str, Any]):
         self.pre_handle()
@@ -36,12 +56,12 @@ class Command(BaseMessage):
 # Event
 # ============================================================================
 E = TypeVar("E", bound="Event")
-EventHandlers = Iterable[Handler[E, Any]]
+EventHandlers = Iterable[Handler[E, ..., Any]]
 
 
 class Event(BaseMessage):
 
-    handlers: ClassVar[EventHandlers[Any]] = []
+    handlers: ClassVar[EventHandlers["Event"]] = []
 
     __event_subclass_registry__: ClassVar[
         WeakValueDictionary[str, type["Event"]]
@@ -82,15 +102,11 @@ async def handle_events(
 # ============================================================================
 # Handle Function
 # ============================================================================
-M = TypeVar("M", bound=BaseMessage)
-R = TypeVar("R")
-
-
-async def handle(msg: M, handler: Handler[M, R], deps: dict[str, Any]) -> R:
+async def handle(msg: M, handler: Handler[M, P, R], deps: dict[str, Any]) -> R:
     if asyncio.iscoroutinefunction(handler):
-        handler = cast(AsyncHandler[M, R], handler)
+        handler = cast(AsyncHandler[M, P, R], handler)
         return await handler(msg, **deps)
-    handler = cast(SyncHandler[M, R], handler)
+    handler = cast(SyncHandler[M, P, R], handler)
     return await asyncio.to_thread(handler, msg, **deps)
 
 
