@@ -4,7 +4,7 @@ from aiokafka import AIOKafkaConsumer  # type: ignore
 
 from pydantic import BaseModel
 
-from pydamain.domain import Event
+from pydamain.domain.message import Event
 from pydamain.adapter.out_.event_producer import jsonb_to_event
 from pydamain.port.in_.event_consumer import AbstractEventConsumer
 

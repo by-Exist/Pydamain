@@ -3,17 +3,31 @@ from __future__ import annotations
 from typing import Generic, TypeVar
 
 from abc import ABCMeta, abstractmethod
-from uuid import UUID
 
 
-A = TypeVar("A")
+Aggregate = TypeVar("Aggregate")
+AggregateIdentity = TypeVar("AggregateIdentity")
 
 
-class AbstractRepository(Generic[A], metaclass=ABCMeta):
+class AbstractCollectionRepository(
+    Generic[Aggregate, AggregateIdentity], metaclass=ABCMeta
+):
     @abstractmethod
-    def add(self, aggregate: A):
+    def add(self, _aggregate: Aggregate):
         ...
 
     @abstractmethod
-    async def get(self, identity: UUID) -> A | None:
+    async def get(self, _identity: AggregateIdentity) -> Aggregate | None:
+        ...
+
+
+class AbstractPersistenceRepository(
+    Generic[Aggregate, AggregateIdentity], metaclass=ABCMeta
+):
+    @abstractmethod
+    async def save(self, _aggregate: Aggregate):
+        ...
+
+    @abstractmethod
+    async def get(self, _identity: AggregateIdentity) -> Aggregate | None:
         ...

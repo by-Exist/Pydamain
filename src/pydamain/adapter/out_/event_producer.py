@@ -5,7 +5,7 @@ from aiokafka import AIOKafkaProducer  # type: ignore
 
 from pydantic import BaseModel
 
-from pydamain.domain import Event
+from pydamain.domain.message import Event
 from pydamain.port.out_.event_producer import AbstractEventProducer
 
 

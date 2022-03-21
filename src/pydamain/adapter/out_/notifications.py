@@ -5,10 +5,10 @@ from email.mime.multipart import MIMEMultipart
 
 from aiosmtplib import SMTP
 
-from pydamain.port.out_.notifications import AbstractEmailNotification
+from pydamain.port.out_.notifications import AbstractNotification
 
 
-class BaseEmailNotification(AbstractEmailNotification):
+class BaseEmailNotification(AbstractNotification):
 
     host: ClassVar[str]
     port: ClassVar[int]
