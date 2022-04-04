@@ -1,4 +1,4 @@
-"""A domain driven design library based on Pydantic."""
+"""A domain driven design library"""
 
 
-__version__ = "0.0.2"
+__version__ = "0.0.3"
