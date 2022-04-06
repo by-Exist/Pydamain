@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from email.message import EmailMessage
-from typing import ClassVar, Iterable
+from typing import ClassVar, Iterable, Optional
 import mimetypes
 
 from aiosmtplib import send
@@ -25,8 +25,8 @@ def build_email_message(
     to: str | Iterable[str],
     subject: str,
     text_version: str,
-    html_version: str,
-    attachments: Iterable[Attachment] = [],
+    html_version: Optional[str] = None,
+    attachments: Optional[Iterable[Attachment]] = None,
 ):
     msg = EmailMessage()
     # header
@@ -34,20 +34,48 @@ def build_email_message(
     msg.add_header("To", to if isinstance(to, str) else ", ".join(to))
     msg.add_header("Subject", subject)
     # payload
-    msg.add_alternative(text_version)
-    msg.add_alternative(html_version, subtype="html")
-    for attachment in attachments:
-        main, sub = attachment.content_type.split("/", 1)
-        msg.add_attachment(
-            attachment.bytes,
-            maintype=main,
-            subtype=sub,
-            filename=attachment.filename,
-        )
+    msg.set_content(text_version)
+    if html_version:
+        msg.add_alternative(html_version, subtype="html")
+    if attachments:
+        for attachment in attachments:
+            main, sub = attachment.content_type.split("/", 1)
+            msg.add_attachment(
+                attachment.bytes,
+                maintype=main,
+                subtype=sub,
+                filename=attachment.filename,
+            )
     return msg
 
 
 class BaseEmailNotification:
+
+    """
+    # Example
+
+    ```python
+    class NaverEmailNotification(BaseEmailNotification):
+        HOST = "smtp.naver.com"
+        PORT = 587
+        USERNAME = "naver account id"
+        PASSWORD = "naver account password"
+
+    msg = build_email_message(
+        from_="from@example.com",
+        to=["to@example.com"],
+        subject="제목",
+        text_version="Text Version",
+        html_version="<html>HTML Version</html>",
+        attachments=[
+            Attachment(filename="filename.txt", bytes=b"file.read()"),
+        ],
+    )
+
+    sender = NaverEmailNotification()
+    asyncio.run(sender.send(msg))
+    ```
+    """
 
     HOST: ClassVar[str]
     PORT: ClassVar[int]
