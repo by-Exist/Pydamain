@@ -5,6 +5,8 @@ import mimetypes
 
 from aiosmtplib import send
 
+from ....port.out_.notification.email import Notification
+
 
 @dataclass(slots=True, kw_only=True)
 class Attachment:
@@ -49,7 +51,7 @@ def build_email_message(
     return msg
 
 
-class BaseEmailNotification:
+class BaseEmailNotification(Notification[EmailMessage]):
 
     """
     # Example
