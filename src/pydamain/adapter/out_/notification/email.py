@@ -5,7 +5,7 @@ import mimetypes
 
 from aiosmtplib import send
 
-from ....port.out_.notification.email import Notification
+from ....port.out_.notification import Notification
 
 
 @dataclass(slots=True, kw_only=True)

@@ -1,12 +1,13 @@
 from datetime import date, time
 from typing import Any
 from uuid import UUID
+
 from cattrs.preconf.orjson import make_converter
 
 
-converter = make_converter()
-
-
+# ============================================================================
+# Converter
+# ============================================================================
 # UUID
 def unstructure_uuid(uuid: UUID):
     return uuid.hex
@@ -34,7 +35,8 @@ def structure_time(time_isoformat: str, _: Any):
     return time.fromisoformat(time_isoformat)
 
 
-# Register
+converter = make_converter(forbid_extra_keys=True)
+
 converter.register_unstructure_hook(UUID, unstructure_uuid)
 converter.register_structure_hook(UUID, structure_uuid)
 

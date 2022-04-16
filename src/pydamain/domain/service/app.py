@@ -1,7 +1,7 @@
 import asyncio
 from typing import Any, Iterable, TypeVar
 
-from ..domain.messages.main import (
+from ..messages.main import (
     Command,
     CommandHandler,
     Event,
@@ -49,9 +49,9 @@ class DomainApplication:
         evt_deps: dict[str, Any],
     ) -> None:
         self._cmd_handler_map: dict[type[Command], CommandHandler[Any] | None] = {}
-        self._evt_handler_map: dict[type[Event], EventHandlers[Any]] = {}
         for cmd_type in cmd_types:
             self._cmd_handler_map[cmd_type] = cmd_type.handler
+        self._evt_handler_map: dict[type[Event], EventHandlers[Any]] = {}
         for evt_type in evt_types:
             self._evt_handler_map[evt_type] = evt_type.handlers
         self._cmd_handler_deps: dict[str, Any] = cmd_deps
@@ -70,11 +70,11 @@ class DomainApplication:
         ...
 
     async def handle(self, cmd: Command):
-        result, events = await self._handle_cmd(cmd)
+        result, events = await self._handle_cmd_with_task(cmd)
         await self._handle_evts(events)
         return result
 
-    async def _handle_cmd(self, cmd: Command) -> tuple[Any, list[Event]]:
+    async def _handle_cmd_with_task(self, cmd: Command) -> tuple[Any, list[Event]]:
         handler = self._cmd_handler_map[type(cmd)]
         if not handler:
             return None, []

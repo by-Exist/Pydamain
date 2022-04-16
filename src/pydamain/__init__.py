@@ -1,4 +1,4 @@
-"""A domain driven design library"""
+"""비동기 DDD 라이브러리"""
 
 
 __version__ = "0.0.3"

@@ -1,22 +1,20 @@
+from abc import ABCMeta, abstractmethod
 from contextvars import ContextVar
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import (
-    Any,
-    ClassVar,
-    TypeVar,
-)
-from typing_extensions import Self, dataclass_transform
+from typing import Any, ClassVar, Optional, TypeVar
 from uuid import UUID, uuid4
+import orjson
 
-from orjson import dumps, loads
+from typing_extensions import Self, dataclass_transform
 
-from .convert import converter
-from .handler import Handler, Handlers
+from ..handler import Handler, Handlers
+
+from .converter import converter
 
 
 # ============================================================================
-# Base
+# Message
 # ============================================================================
 @dataclass(frozen=True, kw_only=True, slots=True)
 class Message:
@@ -85,12 +83,14 @@ events_context_var: ContextVar[list[Event]] = ContextVar("events")
 # ============================================================================
 @dataclass(frozen=True, kw_only=True, slots=True)
 class PublicEvent(Event):
+    from_: Optional[UUID] = None
+
     def dumps(self):
-        return dumps(converter.unstructure(self))  # type: ignore
+        return orjson.dumps(converter.unstructure(self))  # type: ignore
 
     @classmethod
-    def loads(cls, json: bytes | bytearray | memoryview | str):
-        return converter.structure(loads(json), cls)
+    def loads(cls, jsonb: bytes):
+        return converter.structure(orjson.loads(jsonb), cls)
 
 
 @dataclass_transform(
@@ -101,4 +101,29 @@ class PublicEvent(Event):
 )
 def public_event(cls: type[PublicEvent]):  # type: ignore
     assert issubclass(cls, PublicEvent)
+    return dataclass(cls, frozen=True, kw_only=True, slots=True)  # type: ignore
+
+
+# ============================================================================
+# External Event
+# ============================================================================
+@dataclass(frozen=True, kw_only=True, slots=True)
+class ExternalEvent(Event, metaclass=ABCMeta):
+    @classmethod
+    def loads(cls, jsonb: bytes):
+        return converter.structure(orjson.loads(jsonb), cls)
+
+    @abstractmethod
+    def build_commands(self) -> list[Command]:
+        ...
+
+
+@dataclass_transform(
+    eq_default=True,
+    order_default=False,
+    kw_only_default=True,
+    field_descriptors=(field,),
+)
+def external_event(cls: type[ExternalEvent]):  # type: ignore
+    assert issubclass(cls, ExternalEvent)
     return dataclass(cls, frozen=True, kw_only=True, slots=True)  # type: ignore

@@ -12,7 +12,7 @@ from pydamain.domain.messages import (
     command,
     event,
 )
-from pydamain.service import DomainApplication
+from pydamain.domain.service import DomainApplication
 
 
 # handlers

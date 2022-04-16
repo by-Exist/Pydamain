@@ -1,8 +1,9 @@
+from typing import Any
 from pydamain.domain.models.main import entity, Entity
 
 
 @entity
-class Example(Entity):
+class Example(Entity[Any]):
     name: str
 
 
