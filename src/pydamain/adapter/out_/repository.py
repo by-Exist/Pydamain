@@ -1,23 +1,20 @@
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, ClassVar, Optional
+from typing import Any, ClassVar, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
-from ...port.out_.repository import Repository
-
-if TYPE_CHECKING:
-    from ...domain.models.main import Aggregate, EntityID
+from ...port.out_.repository import Repository, A
 
 
 @dataclass
-class BaseSQLAlchemyRepository(Repository[EntityID]):
+class BaseSQLAlchemyRepository(Repository[A]):
 
-    AGGREGATE_TYPE: ClassVar[type[Aggregate[EntityID]]]  # type: ignore
+    AGGREGATE_TYPE: ClassVar[type[A]]
 
     session: AsyncSession
 
-    async def get(self, id: EntityID) -> Optional[Aggregate[EntityID]]:
-        return await self.session.get(self.AGGREGATE_TYPE, id)  # type: ignore
+    async def get(self, id: Any) -> Optional[A]:
+        return await self.session.get(self.AGGREGATE_TYPE, id)
 
-    async def set(self, aggregate: Aggregate[EntityID]) -> None:
+    async def set(self, aggregate: A) -> None:
         self.session.add(aggregate)  # type: ignore

@@ -1,13 +1,16 @@
-from typing import TYPE_CHECKING, Optional, Protocol
+from typing import TYPE_CHECKING, Any, Optional, Protocol, TypeVar
 
 
 if TYPE_CHECKING:
-    from ...domain.models.main import EntityID, Aggregate
+    from ...domain.models.main import Aggregate
 
 
-class Repository(Protocol[EntityID]):
-    async def get(self, id: EntityID) -> Optional[Aggregate[EntityID]]:
+A = TypeVar("A", bound=Aggregate)
+
+
+class Repository(Protocol[A]):
+    async def get(self, id: Any) -> Optional[A]:
         ...
 
-    async def set(self, aggregate: Aggregate[EntityID]) -> None:
+    async def set(self, aggregate: A) -> None:
         ...
