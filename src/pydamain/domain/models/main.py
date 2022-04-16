@@ -1,6 +1,4 @@
-from abc import abstractmethod
 from dataclasses import dataclass, field
-from typing import Generic, TypeVar
 from typing_extensions import dataclass_transform
 
 
@@ -26,15 +24,9 @@ def value_object(cls: type[ValueObject]):  # type: ignore
 # ============================================================================
 # Entity
 # ============================================================================
-EntityID = TypeVar("EntityID")
-
-
 @dataclass(eq=False, kw_only=True, slots=True)
-class Entity(Generic[EntityID]):
-    @property
-    @abstractmethod
-    def id(self) -> EntityID:
-        ...
+class Entity:
+    ...
 
 
 @dataclass_transform(
@@ -52,7 +44,7 @@ def entity(cls: type[Entity]):  # type: ignore
 # Aggregate
 # ============================================================================
 @dataclass(eq=False, kw_only=True, slots=True)
-class Aggregate(Entity[EntityID]):
+class Aggregate(Entity):
     ...
 
 
