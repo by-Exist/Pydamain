@@ -1,10 +1,8 @@
 from abc import abstractmethod
-from dataclasses import dataclass
 from types import TracebackType
 from typing import Optional, Protocol
 
 
-@dataclass
 class UnitOfWork(Protocol):
     async def __aenter__(self):
         return self
