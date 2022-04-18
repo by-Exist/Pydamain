@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Callable
+from typing import Any, Callable
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -15,6 +15,10 @@ class BaseSQLAlchemyUnitOfWork(UnitOfWork):
 
     def __post_init__(self):
         self._session = self.SESSION_FACTORY()
+
+    async def __aexit__(self, *args: Any):
+        await super().__aexit__(*args)
+        await self._session.close()  # type: ignore
 
     async def commit(self):
         await self._session.commit()  # type: ignore
