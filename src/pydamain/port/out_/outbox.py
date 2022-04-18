@@ -1,16 +1,13 @@
-from typing import TYPE_CHECKING, Protocol, TypeAlias, TypeVar
+from typing import TYPE_CHECKING, Any, Protocol
+
 
 if TYPE_CHECKING:
     from ...domain.messages import Event
 
 
-I = TypeVar("I", contravariant=True)
-E: TypeAlias = Event
-
-
-class OutBox(Protocol[I]):
-    async def set(self, event: E) -> None:
+class OutBox(Protocol):
+    async def set(self, event: Event) -> None:
         ...
 
-    async def del_(self, id: I) -> None:
+    async def del_(self, id: Any) -> None:
         ...
