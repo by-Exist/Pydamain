@@ -3,7 +3,7 @@ from email.message import EmailMessage
 from typing import ClassVar, Iterable, Optional
 import mimetypes
 
-from aiosmtplib import send
+from aiosmtplib import send  # type: ignore
 
 from ....port.out_.notification import Notification
 
