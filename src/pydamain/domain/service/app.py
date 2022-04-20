@@ -43,19 +43,11 @@ class DomainApplication:
     def __init__(
         self,
         *,
-        cmd_types: Iterable[type[Command]],
         cmd_deps: dict[str, Any],
-        evt_types: Iterable[type[Event]],
         evt_deps: dict[str, Any],
     ) -> None:
-        self._cmd_handler_map: dict[type[Command], CommandHandler[Any] | None] = {}
-        for cmd_type in cmd_types:
-            self._cmd_handler_map[cmd_type] = cmd_type.handler
-        self._evt_handler_map: dict[type[Event], EventHandlers[Any]] = {}
-        for evt_type in evt_types:
-            self._evt_handler_map[evt_type] = evt_type.handlers
-        self._cmd_handler_deps: dict[str, Any] = cmd_deps
-        self._evt_handler_deps: dict[str, Any] = evt_deps
+        self._cmd_deps: dict[str, Any] = cmd_deps
+        self._evt_deps: dict[str, Any] = evt_deps
 
     async def pre_cmd_handle(self, cmd: C, handler: CommandHandler[C]):
         ...
@@ -75,7 +67,7 @@ class DomainApplication:
         return result
 
     async def _handle_cmd_with_task(self, cmd: Command) -> tuple[Any, list[Event]]:
-        handler = self._cmd_handler_map[type(cmd)]
+        handler = type(cmd).handler
         if not handler:
             return None, []
         return await asyncio.create_task(
@@ -87,7 +79,7 @@ class DomainApplication:
     ):
         with EventCatchContext() as event_catcher:
             await self.pre_cmd_handle(cmd, handler)
-            result = await handler(cmd, **self._cmd_handler_deps)
+            result = await handler(cmd, **self._cmd_deps)
             await self.post_cmd_handle(cmd, handler)
         return result, event_catcher.events
 
@@ -96,11 +88,11 @@ class DomainApplication:
         await asyncio.gather(*coros, return_exceptions=False)
 
     async def _handle_evt(self, evt: Event):
-        handlers = self._evt_handler_map[type(evt)]
+        handlers = type(evt).handlers
         coros = (self._handle_evt_once(evt, handler) for handler in handlers)
         await asyncio.gather(*coros, return_exceptions=False)
 
     async def _handle_evt_once(self, evt: E, handler: EventHandler[E]):
         await self.pre_evt_handle(evt, handler)
-        await handler(evt, **self._evt_handler_deps)
+        await handler(evt, **self._evt_deps)
         await self.post_evt_handle(evt, handler)

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from dataclasses import dataclass
 
 from typing import Any, ClassVar
@@ -63,9 +64,7 @@ switch_3 = Switch()
 
 
 app = DomainApplication(
-    cmd_types={ExampleCommand},
     cmd_deps={"switch": switch_1},
-    evt_types={ExampleEvent},
     evt_deps={
         "one": switch_2,
         "two": switch_3,
