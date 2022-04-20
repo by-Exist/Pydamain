@@ -1,9 +1,8 @@
-from typing import Any
 from pydamain.domain.models.main import aggregate, Aggregate
 
 
 @aggregate
-class Example(Aggregate[Any]):
+class Example(Aggregate):
     name: str
 
 
