@@ -6,7 +6,6 @@ from ..messages.main import (
     CommandHandler,
     Event,
     EventHandler,
-    EventHandlers,
     events_context_var,
 )
 
