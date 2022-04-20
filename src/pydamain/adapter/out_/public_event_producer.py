@@ -32,16 +32,20 @@ class BaseKafkaPublicEventProducer(PublicEventProducer):
     async def post_send(self, msg: PublicEvent):
         ...
 
-    async def send(self, evt: PublicEvent):
+    async def send(self, public_event: PublicEvent):
         await self._aiokafka_producer.start()
-        await self.pre_send(evt)
+        await self.pre_send(public_event)
         record_metadata: RecordMetadata = await self._aiokafka_producer.send_and_wait(  # type: ignore
-            topic=f"{self.TOPIC_PREFIX}/{type(evt).__name__}",
-            key=self.serialize_key(evt.from_) if evt.from_ else None,
-            value=self.serialize_value(evt),
+            topic=self.build_topic_name(public_event),
+            key=self.serialize_key(public_event.from_) if public_event.from_ else None,
+            value=self.serialize_value(public_event),
         )
-        await self.post_send(evt)
+        await self.post_send(public_event)
         await self._aiokafka_producer.stop()
+
+    @classmethod
+    def build_topic_name(cls, public_event: PublicEvent):
+        return f"{cls.TOPIC_PREFIX}/{type(public_event).__name__}"
 
     @classmethod
     def serialize_key(cls, id: UUID):
