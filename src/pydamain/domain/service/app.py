@@ -88,6 +88,8 @@ class DomainApplication:
 
     async def _handle_evt(self, evt: Event):
         handlers = type(evt).handlers
+        if not handlers:
+            return
         coros = (self._handle_evt_once(evt, handler) for handler in handlers)
         await asyncio.gather(*coros, return_exceptions=False)
 
