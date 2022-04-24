@@ -10,7 +10,7 @@ from typing_extensions import Self, dataclass_transform
 
 from ..handler import Handler, Handlers
 
-from .converter import converter
+from ..converter import converter
 
 
 # ============================================================================
