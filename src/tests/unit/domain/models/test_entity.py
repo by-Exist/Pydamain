@@ -1,9 +1,16 @@
-from pydamain.domain.models.main import entity, Entity
+from typing import Any
+from pydamain.domain.models.main import entity, Entity, field
+from uuid import UUID, uuid4
 
 
 @entity
 class Example(Entity):
+    id: UUID = field(default_factory=uuid4)
     name: str
+
+    @property
+    def identity(self):
+        return self.id
 
 
 class TestValueObject:

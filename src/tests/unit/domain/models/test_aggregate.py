@@ -1,9 +1,15 @@
-from pydamain.domain.models.main import aggregate, Aggregate
-
+from typing import Any
+from pydamain.domain.models.main import aggregate, Aggregate, field
+from uuid import UUID, uuid4
 
 @aggregate
 class Example(Aggregate):
+    id: UUID = field(default_factory=uuid4)
     name: str
+
+    @property
+    def identity(self) -> Any:
+        return self.id
 
 
 class TestAggregate:

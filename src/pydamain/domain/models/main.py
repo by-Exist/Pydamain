@@ -1,4 +1,6 @@
+from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass, field
+from typing import Any
 from typing_extensions import dataclass_transform
 
 
@@ -25,8 +27,12 @@ def value_object(cls: type[ValueObject]):  # type: ignore
 # Entity
 # ============================================================================
 @dataclass(eq=False, kw_only=True, slots=True)
-class Entity:
-    ...
+class Entity(metaclass=ABCMeta):
+    
+    @property
+    @abstractmethod
+    def identity(self) -> Any:
+        ...
 
 
 @dataclass_transform(
