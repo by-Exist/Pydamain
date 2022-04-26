@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import Any, ClassVar, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ...port.out_.repository import Repository, A
+from ....port.out_.repository import Repository, A
 
 
 @dataclass
