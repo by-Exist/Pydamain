@@ -25,14 +25,9 @@ class BaseMotorRepository(Repository[A]):
 
     def __init_subclass__(cls) -> None:
         if not cls.AGGREGATE_TYPE:
-            # TODO: ...
-            raise AttributeError()
+            raise AttributeError(f"required {cls.__name__}.AGGREGATE_TYPE")
         if not cls.COLLECTION_NAME:
-            cls.COLLECTION_NAME = cls.build_collection_name()
-
-    @classmethod
-    def build_collection_name(cls):
-        return cls.AGGREGATE_TYPE.__name__
+            cls.COLLECTION_NAME = cls.AGGREGATE_TYPE.__name__
 
     def __post_init__(self):
         client: AsyncIOMotorClient = self.session.client  # type: ignore
