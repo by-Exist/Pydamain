@@ -1,4 +1,6 @@
 import asyncio
+from contextvars import Token
+from dataclasses import dataclass, field
 from typing import Any, Iterable, TypeVar
 
 from ..messages.main import (
@@ -13,9 +15,11 @@ from ..messages.main import (
 # ============================================================================
 # Event Catch Context
 # ============================================================================
+@dataclass
 class EventCatchContext:
 
-    __slots__ = ("_results", "_token")
+    _results: list[Event] = field(default_factory=list, init=False)
+    _token: Token[list[Event]] = field(init=False)
 
     @property
     def events(self):
@@ -61,21 +65,14 @@ class DomainApplication:
         ...
 
     async def handle(self, cmd: Command):
-        result, events = await self._handle_cmd_with_task(cmd)
-        await self._handle_evts(events)
-        return result
-
-    async def _handle_cmd_with_task(self, cmd: Command) -> tuple[Any, list[Event]]:
         handler = type(cmd).handler
         if not handler:
-            return None, []
-        return await asyncio.create_task(
-            self._handle_cmd_with_event_catch_context(cmd, handler)
-        )
+            return
+        result, evts = await asyncio.create_task(self._handle_cmd(cmd, handler))
+        await self._handle_evts(evts)
+        return result
 
-    async def _handle_cmd_with_event_catch_context(
-        self, cmd: C, handler: CommandHandler[C]
-    ):
+    async def _handle_cmd(self, cmd: C, handler: CommandHandler[C]):
         with EventCatchContext() as event_catcher:
             await self.pre_cmd_handle(cmd, handler)
             result = await handler(cmd, **self._cmd_deps)
@@ -83,17 +80,14 @@ class DomainApplication:
         return result, event_catcher.events
 
     async def _handle_evts(self, evts: Iterable[Event]):
-        coros = (self._handle_evt(evt) for evt in evts)
+        coros = (
+            self._handle_evt(evt, handler)
+            for evt in evts
+            for handler in type(evt).handlers
+        )
         await asyncio.gather(*coros, return_exceptions=False)
 
-    async def _handle_evt(self, evt: Event):
-        handlers = type(evt).handlers
-        if not handlers:
-            return
-        coros = (self._handle_evt_once(evt, handler) for handler in handlers)
-        await asyncio.gather(*coros, return_exceptions=False)
-
-    async def _handle_evt_once(self, evt: E, handler: EventHandler[E]):
+    async def _handle_evt(self, evt: E, handler: EventHandler[E]):
         await self.pre_evt_handle(evt, handler)
         await handler(evt, **self._evt_deps)
         await self.post_evt_handle(evt, handler)
