@@ -46,12 +46,12 @@ class BaseKafkaExternalEventConsumer(ExternalEventConsumer):
                 await self.pre_consume(external_event)
                 for command in external_event.build_commands():
                     await self.app.handle(command)
-                await self._aiokafka_consumer.commit()  # type: ignore
                 await self.post_consume(external_event)
+                await self._aiokafka_consumer.commit()  # type: ignore
         finally:
             await self._aiokafka_consumer.stop()
 
     @classmethod
-    def deserialize_value(cls, topic: str, jsonb: bytes):
+    def deserialize_value(cls, topic: str, value: bytes):
         external_event_type = cls.TOPIC_NAME_EXTERNAL_EVENT_TYPE_MAP[topic]
-        return external_event_type.loads(jsonb)
+        return external_event_type.loads(value)
