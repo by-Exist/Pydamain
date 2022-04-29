@@ -9,8 +9,8 @@ A = TypeVar("A", bound=Aggregate)
 
 
 class Repository(Protocol[A]):
-    async def get(self, id: Any) -> Optional[A]:
+    async def get(self, _id: Any) -> Optional[A]:
         ...
 
-    async def set(self, aggregate: A) -> None:
+    async def set(self, _aggregate: A) -> None:
         ...

@@ -5,5 +5,5 @@ if TYPE_CHECKING:
 
 
 class PublicEventProducer(Protocol):
-    async def send(self, __msg: PublicEvent):
+    async def send(self, _msg: PublicEvent):
         ...
