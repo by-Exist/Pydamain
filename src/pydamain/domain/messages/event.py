@@ -1,49 +1,17 @@
 from abc import ABCMeta, abstractmethod
 from contextvars import ContextVar
 from dataclasses import dataclass, field
-from datetime import datetime
-from typing import Any, ClassVar, Optional, TypeVar
-from uuid import UUID, uuid4
-import orjson
+from typing import TYPE_CHECKING, Any, ClassVar, TypeVar
 
 from typing_extensions import Self, dataclass_transform
 
-from ..handler import Handler, Handlers
+import orjson
 
 from ..converter import converter
+from ..handler import Handler, Handlers
 
-
-# ============================================================================
-# Message
-# ============================================================================
-@dataclass(frozen=True, kw_only=True, slots=True)
-class Message:
-    id: UUID = field(default_factory=uuid4)
-    create_time: datetime = field(default_factory=datetime.now)
-
-
-# ============================================================================
-# Command
-# ============================================================================
-C = TypeVar("C", bound="Command")
-CommandHandler = Handler[C, Any]
-
-
-@dataclass(frozen=True, kw_only=True, slots=True)
-class Command(Message):
-
-    handler: ClassVar[CommandHandler[Self] | None] = None
-
-
-@dataclass_transform(
-    eq_default=True,
-    order_default=False,
-    kw_only_default=True,
-    field_descriptors=(field,),
-)
-def command(cls: type[Command]):  # type: ignore
-    assert issubclass(cls, Command)
-    return dataclass(cls, frozen=True, kw_only=True, slots=True)  # type: ignore
+if TYPE_CHECKING:
+    from .command import Command
 
 
 # ============================================================================
@@ -55,9 +23,14 @@ EventHandlers = Handlers[E, None]
 
 
 @dataclass(frozen=True, kw_only=True, slots=True)
-class Event(Message):
+class Event(metaclass=ABCMeta):
 
     handlers: ClassVar[EventHandlers[Self]] = []
+
+    @property
+    @abstractmethod
+    def identity(self) -> Any:
+        ...
 
     def issue(self):
         events = events_context_var.get()
@@ -83,9 +56,7 @@ events_context_var: ContextVar[list[Event]] = ContextVar("events")
 # ============================================================================
 @dataclass(frozen=True, kw_only=True, slots=True)
 class PublicEvent(Event):
-    from_: Optional[UUID] = None
-
-    def dumps(self):
+    def dumps(self) -> bytes:
         return orjson.dumps(converter.unstructure(self))  # type: ignore
 
     @classmethod
@@ -114,7 +85,7 @@ class ExternalEvent(Event, metaclass=ABCMeta):
         return converter.structure(orjson.loads(jsonb), cls)
 
     @abstractmethod
-    def build_commands(self) -> list[Command]:
+    def build_commands(self) -> list["Command"]:
         ...
 
 

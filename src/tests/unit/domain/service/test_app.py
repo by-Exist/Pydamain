@@ -4,6 +4,7 @@ from dataclasses import dataclass
 
 from typing import Any, ClassVar
 from typing_extensions import Self
+from uuid import UUID, uuid4
 
 from pydamain.domain.messages import (
     Command,
@@ -12,6 +13,7 @@ from pydamain.domain.messages import (
     EventHandlers,
     command,
     event,
+    field,
 )
 from pydamain.domain.service import DomainApplication
 
@@ -35,17 +37,29 @@ async def example_evt_handler_two(evt: ExampleEvent, two: Switch, **_: Any):
 @command
 class ExampleCommand(Command):
 
+    id: UUID = field(default_factory=uuid4)
+
     handler: ClassVar[CommandHandler[Self]] = example_cmd_handler
+
+    @property
+    def identity(self) -> Any:
+        return self.id
 
 
 # events
 @event
 class ExampleEvent(Event):
 
+    id: UUID = field(default_factory=uuid4)
+
     handlers: ClassVar[EventHandlers[Self]] = [
         example_evt_handler_one,
         example_evt_handler_two,
     ]
+
+    @property
+    def identity(self) -> Any:
+        return self.id
 
 
 # switch (run check)

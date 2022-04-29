@@ -1,11 +1,19 @@
 from dataclasses import FrozenInstanceError
+from uuid import UUID, uuid4
 import pytest
-from pydamain.domain.messages.main import Event, event
+
+from pydamain.domain.messages import Event, event, field
 
 
 @event
 class Example(Event):
+
+    id: UUID = field(default_factory=uuid4)
     name: str
+
+    @property
+    def identity(self):
+        return self.id
 
 
 class TestEvent:

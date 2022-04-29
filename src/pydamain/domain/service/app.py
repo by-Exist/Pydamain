@@ -3,13 +3,8 @@ from contextvars import Token
 from dataclasses import dataclass, field
 from typing import Any, Iterable, TypeVar
 
-from ..messages.main import (
-    Command,
-    CommandHandler,
-    Event,
-    EventHandler,
-    events_context_var,
-)
+from ..messages.command import Command, CommandHandler
+from ..messages.event import Event, EventHandler, events_context_var
 
 
 # ============================================================================

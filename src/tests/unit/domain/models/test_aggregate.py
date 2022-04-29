@@ -1,6 +1,7 @@
 from typing import Any
-from pydamain.domain.models.main import aggregate, Aggregate, field
+from pydamain.domain.models import aggregate, Aggregate, field
 from uuid import UUID, uuid4
+
 
 @aggregate
 class Example(Aggregate):

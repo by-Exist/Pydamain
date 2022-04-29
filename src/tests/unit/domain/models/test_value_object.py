@@ -1,6 +1,6 @@
 from dataclasses import FrozenInstanceError
 import pytest
-from pydamain.domain.models.main import value_object, ValueObject
+from pydamain.domain.models import value_object, ValueObject
 
 
 @value_object

@@ -1,5 +1,5 @@
 from typing import Any
-from pydamain.domain.models.main import entity, Entity, field
+from pydamain.domain.models import entity, Entity, field
 from uuid import UUID, uuid4
 
 

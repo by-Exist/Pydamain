@@ -1,10 +1,5 @@
 # type: ignore
 from dataclasses import field
-from .main import (
-    Aggregate,
-    Entity,
-    ValueObject,
-    aggregate,
-    entity,
-    value_object,
-)
+from .value_object import ValueObject, value_object
+from .entity import Entity, entity
+from .aggregate import Aggregate, aggregate

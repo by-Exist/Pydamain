@@ -1,11 +1,18 @@
 from dataclasses import FrozenInstanceError
+from uuid import UUID, uuid4
 import pytest
-from pydamain.domain.messages.main import Command, command
+
+from pydamain.domain.messages import Command, command, field
 
 
 @command
 class Example(Command):
+    id: UUID = field(default_factory=uuid4)
     name: str
+
+    @property
+    def identity(self):
+        return self.id
 
 
 class TestCommand:
