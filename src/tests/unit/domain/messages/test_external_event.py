@@ -13,13 +13,17 @@ from pydamain.domain.messages import (
 
 
 @public_event
-class PublicEvent(PublicEvent):
+class TestPublicEvent(PublicEvent):
     id: UUID = field(default_factory=uuid4)
     name: str
 
     @property
     def identity(self):
         return self.id
+
+    @property
+    def from_(self):
+        return None
 
 
 @command
@@ -47,7 +51,7 @@ class Example(ExternalEvent):
 
 class TestExternalEvent:
     def test_flow(self):
-        published_event = PublicEvent(name="blabla...")
+        published_event = TestPublicEvent(name="blabla...")
         message = published_event.dumps()
         external_event = Example.loads(message)
         cmd = external_event.build_commands()[0]

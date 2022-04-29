@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
 from contextvars import ContextVar
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any, ClassVar, TypeVar
+from typing import TYPE_CHECKING, Any, ClassVar, Optional, TypeVar
 
 from typing_extensions import Self, dataclass_transform
 
@@ -55,12 +55,17 @@ events_context_var: ContextVar[list[Event]] = ContextVar("events")
 # Public Event
 # ============================================================================
 @dataclass(frozen=True, kw_only=True, slots=True)
-class PublicEvent(Event):
+class PublicEvent(Event, metaclass=ABCMeta):
+    @property
+    @abstractmethod
+    def from_(self) -> Optional[Any]:
+        ...
+
     def dumps(self) -> bytes:
         return orjson.dumps(converter.unstructure(self))  # type: ignore
 
     @classmethod
-    def loads(cls, jsonb: bytes):
+    def loads(cls, jsonb: bytes) -> Self:
         return converter.structure(orjson.loads(jsonb), cls)
 
 

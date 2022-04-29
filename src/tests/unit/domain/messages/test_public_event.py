@@ -1,5 +1,4 @@
-from datetime import date, datetime, time
-import typing
+from datetime import datetime
 from dataclasses import FrozenInstanceError, dataclass, field
 from enum import Enum, unique
 from uuid import UUID, uuid4
@@ -17,6 +16,10 @@ class Example(PublicEvent):
     @property
     def identity(self):
         return self.id
+
+    @property
+    def from_(self):
+        return None
 
 
 @unique
