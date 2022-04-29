@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING, Any, Optional, Protocol, TypeVar
 
 
 if TYPE_CHECKING:
-    from ...domain.models.main import Aggregate
+    from ...domain.models import Aggregate
 
 
 A = TypeVar("A", bound=Aggregate)
