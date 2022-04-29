@@ -80,7 +80,7 @@ class DomainApplication:
             for evt in evts
             for handler in type(evt).handlers
         )
-        await asyncio.gather(*coros, return_exceptions=False)
+        await asyncio.gather(*coros, return_exceptions=True)
 
     async def _handle_evt(self, evt: E, handler: EventHandler[E]):
         await self.pre_evt_handle(evt, handler)
