@@ -1,7 +1,15 @@
 from typing import cast
 from uuid import UUID, uuid4
 
-from pydamain.domain.messages import Command, command, ExternalEvent, external_event, PublicEvent, public_event, field
+from pydamain.domain.messages import (
+    Command,
+    ExternalEvent,
+    PublicEvent,
+    command,
+    external_event,
+    field,
+    public_event,
+)
 
 
 @public_event
