@@ -1,5 +1,5 @@
-from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass, field
+from typing import Optional
 from typing_extensions import dataclass_transform
 import orjson
 
@@ -8,11 +8,10 @@ from ..converter import converter
 
 
 @dataclass(frozen=True, kw_only=True, slots=True)
-class PublicEvent(Event, metaclass=ABCMeta):
+class PublicEvent(Event):
     @property
-    @abstractmethod
-    def from_(self) -> bytes:
-        ...
+    def from_(self) -> Optional[bytes]:
+        return None
 
     def dumps_(self) -> bytes:
         return orjson.dumps(converter.unstructure(self))  # type: ignore
