@@ -17,7 +17,7 @@ async def example_event_handler_two(evt: "ExampleEvent", **_: Any):
 @event
 class ExampleEvent(Event):
 
-    handlers_: ClassVar[EventHandlers[Self]] = [
+    HANDLERS: ClassVar[EventHandlers[Self]] = [
         example_event_handler_one,
         example_event_handler_two,
     ]

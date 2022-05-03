@@ -21,6 +21,7 @@ class ExamplePublicEvent(PublicEvent):
 
 @command
 class ExampleCommand(Command):
+
     name: str
 
 

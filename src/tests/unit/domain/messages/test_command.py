@@ -9,7 +9,7 @@ from pydamain.domain.messages import Command, command, CommandHandler
 check_handled = False
 
 
-async def example_command_handler(ex_cmd: "ExampleCommand", some: str, **_: Any):
+async def example_command_handler(cmd: "ExampleCommand", some: str, **_: Any):
     global check_handled
     check_handled = True
     return some
@@ -18,7 +18,7 @@ async def example_command_handler(ex_cmd: "ExampleCommand", some: str, **_: Any)
 @command
 class ExampleCommand(Command):
 
-    handler_: ClassVar[CommandHandler[Self]] = example_command_handler
+    HANDLER: ClassVar[CommandHandler[Self]] = example_command_handler
 
     name: str
 

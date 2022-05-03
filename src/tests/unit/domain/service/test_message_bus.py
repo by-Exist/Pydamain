@@ -27,7 +27,7 @@ async def example_command_handler(
 @command
 class ExampleCommand(Command):
 
-    handler_: ClassVar[CommandHandler[Self]] = example_command_handler
+    HANDLER: ClassVar[CommandHandler[Self]] = example_command_handler
 
 
 async def example_event_handler_one(
@@ -45,7 +45,7 @@ async def example_event_handler_two(
 @event
 class ExampleEvent(Event):
 
-    handlers_: ClassVar[EventHandlers[Self]] = [
+    HANDLERS: ClassVar[EventHandlers[Self]] = [
         example_event_handler_one,
         example_event_handler_two,
     ]

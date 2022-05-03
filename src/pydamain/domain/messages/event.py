@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Any, ClassVar, Iterable, Protocol, TypeVar
+from typing import Any, ClassVar, Iterable, Optional, Protocol, TypeVar
 import asyncio
 
 from typing_extensions import Self, dataclass_transform
@@ -26,7 +26,7 @@ EventHandlers = Iterable[EventHandler[E]]
 @dataclass(frozen=True, kw_only=True, slots=True)
 class Event(Message):
 
-    handlers_: ClassVar[EventHandlers[Self]]
+    HANDLERS: ClassVar[Optional[EventHandlers[Self]]] = None
 
     async def _pre_handle(self, handler: EventHandler[Self]):
         ...
@@ -35,7 +35,9 @@ class Event(Message):
         ...
 
     async def handle_(self, deps: dict[str, Any]):
-        handlers = type(self).handlers_
+        handlers = type(self).HANDLERS
+        if not handlers:
+            return list[Any]()
         coros = (self._handle(handler, deps) for handler in handlers)
         return await asyncio.gather(*coros, return_exceptions=True)
 
