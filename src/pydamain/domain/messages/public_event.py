@@ -1,20 +1,29 @@
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import Any, ClassVar, Optional, Protocol
 from typing_extensions import dataclass_transform
-import orjson
 
 from .event import Event
-from ..converter import converter
+
+
+class _Dumper(Protocol):
+    def dumps(self, obj: Any) -> bytes:
+        ...
+
+
+Dumper = _Dumper
 
 
 @dataclass(frozen=True, kw_only=True, slots=True)
 class PublicEvent(Event):
+
+    DUMPER: ClassVar[Dumper]
+
     @property
     def from_(self) -> Optional[bytes]:
         return None
 
     def dumps_(self) -> bytes:
-        return orjson.dumps(converter.unstructure(self))  # type: ignore
+        return self.DUMPER.dumps(self)
 
 
 @dataclass_transform(

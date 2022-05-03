@@ -1,5 +1,10 @@
 from dataclasses import FrozenInstanceError
+from typing import ClassVar
+
+from cattrs.preconf.orjson import make_converter  # type: ignore
+from cattr.preconf.orjson import OrjsonConverter  # type: ignore
 import pytest
+
 from pydamain.domain.messages import (
     Command,
     ExternalEvent,
@@ -12,6 +17,9 @@ from pydamain.domain.messages import (
 
 @public_event
 class ExamplePublicEvent(PublicEvent):
+
+    DUMPER: ClassVar[OrjsonConverter] = make_converter()
+
     name: str
 
     @property
@@ -27,6 +35,9 @@ class ExampleCommand(Command):
 
 @external_event
 class ExampleExternalEvent(ExternalEvent):
+
+    LOADER: ClassVar[OrjsonConverter] = make_converter()
+
     name: str
 
     def build_commands_(self):
@@ -43,8 +54,10 @@ def test_frozen():
 
 
 def test_loads():
-    jsonb = ExamplePublicEvent(name="blabla...").dumps_()
-    ExampleExternalEvent.loads_(jsonb)
+    public_event = ExamplePublicEvent(name="blabla...")
+    jsonb = public_event.dumps_()
+    external_event = ExampleExternalEvent.loads_(jsonb)
+    assert external_event.name == public_event.name
 
 
 def test_build_commands():

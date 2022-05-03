@@ -1,18 +1,31 @@
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass, field
+from typing import ClassVar, Protocol, TypeVar
 from typing_extensions import dataclass_transform
-import orjson
 
 from .command import Command
 from .event import Event
-from ..converter import converter
+
+
+T = TypeVar("T")
+
+
+class _Loader(Protocol):
+    def loads(self, data: bytes, cl: type[T]) -> T:
+        ...
+
+
+Loader = _Loader
 
 
 @dataclass(frozen=True, kw_only=True, slots=True)
 class ExternalEvent(Event, metaclass=ABCMeta):
+
+    LOADER: ClassVar[Loader]
+
     @classmethod
     def loads_(cls, jsonb: bytes):
-        return converter.structure(orjson.loads(jsonb), cls)
+        return cls.LOADER.loads(jsonb, cls)
 
     @abstractmethod
     def build_commands_(self) -> tuple[Command, ...]:
