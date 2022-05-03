@@ -49,8 +49,8 @@ class BaseKafkaPublicEventProducer(PublicEventProducer):
 
     @classmethod
     def generate_key(cls, public_event: PublicEvent) -> Optional[bytes]:
-        return bytes(public_event.from_) if public_event.from_ else None
+        return public_event.from_ if public_event.from_ else None
 
     @classmethod
     def generate_value(cls, public_event: PublicEvent) -> bytes:
-        return public_event.dumps()
+        return public_event.dumps_()

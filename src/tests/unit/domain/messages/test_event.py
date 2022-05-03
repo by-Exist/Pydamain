@@ -1,30 +1,37 @@
 from dataclasses import FrozenInstanceError
-from uuid import UUID, uuid4
+from typing import Any, ClassVar
+from typing_extensions import Self
 import pytest
 
-from pydamain.domain.messages import Event, event, field
+from pydamain.domain.messages import Event, event, EventHandlers
+
+
+async def example_event_handler_one(evt: "ExampleEvent", **_: Any):
+    return 1
+
+
+async def example_event_handler_two(evt: "ExampleEvent", **_: Any):
+    return 2
 
 
 @event
-class Example(Event):
+class ExampleEvent(Event):
 
-    id: UUID = field(default_factory=uuid4)
+    handlers_: ClassVar[EventHandlers[Self]] = [
+        example_event_handler_one,
+        example_event_handler_two,
+    ]
+
     name: str
 
-    @property
-    def identity(self):
-        return self.id
+
+def test_frozen():
+    evt = ExampleEvent(name="foo")
+    with pytest.raises(FrozenInstanceError):
+        evt.name = "bar"
 
 
-class TestEvent:
-
-    foo_1 = Example(name="foo")
-    foo_2 = Example(name="foo")
-    bar = Example(name="bar")
-
-    def test_event_has_unique_id(self):
-        assert self.foo_1 != self.foo_2
-
-    def test_event_frozen(self):
-        with pytest.raises(FrozenInstanceError):
-            self.bar.name = "other"
+async def test_handle():
+    evt = ExampleEvent(name="foo")
+    result = await evt.handle_({})
+    assert result == [1, 2]

@@ -1,29 +1,35 @@
 from dataclasses import FrozenInstanceError
-from uuid import UUID, uuid4
+from typing import Any, ClassVar
+from typing_extensions import Self
 import pytest
 
-from pydamain.domain.messages import Command, command, field
+from pydamain.domain.messages import Command, command, CommandHandler
+
+
+check_handled = False
+
+
+async def example_command_handler(ex_cmd: "ExampleCommand", some: str, **_: Any):
+    global check_handled
+    check_handled = True
+    return some
 
 
 @command
-class Example(Command):
-    id: UUID = field(default_factory=uuid4)
+class ExampleCommand(Command):
+
+    handler_: ClassVar[CommandHandler[Self]] = example_command_handler
+
     name: str
 
-    @property
-    def identity(self):
-        return self.id
+
+def test_frozen():
+    foo = ExampleCommand(name="foo")
+    with pytest.raises(FrozenInstanceError):
+        foo.name = "other"
 
 
-class TestCommand:
-
-    foo_1 = Example(name="foo")
-    foo_2 = Example(name="foo")
-    bar = Example(name="bar")
-
-    def test_command_has_unique_id(self):
-        assert self.foo_1 != self.foo_2
-
-    def test_command_frozen(self):
-        with pytest.raises(FrozenInstanceError):
-            self.bar.name = "other"
+async def test_handle():
+    cmd = ExampleCommand(name="foo")
+    result = await cmd.handle_({"some": "value"})
+    assert result == "value"

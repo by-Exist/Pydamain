@@ -1,2 +1,2 @@
 # type: ignore
-from .app import DomainApplication
+from .message_bus import MessageBus

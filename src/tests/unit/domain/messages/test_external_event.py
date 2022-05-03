@@ -1,59 +1,55 @@
-from typing import cast
-from uuid import UUID, uuid4
-
+from dataclasses import FrozenInstanceError
+import pytest
 from pydamain.domain.messages import (
     Command,
     ExternalEvent,
     PublicEvent,
     command,
     external_event,
-    field,
     public_event,
 )
 
 
 @public_event
-class TestPublicEvent(PublicEvent):
-    id: UUID = field(default_factory=uuid4)
+class ExamplePublicEvent(PublicEvent):
     name: str
-
-    @property
-    def identity(self):
-        return self.id
 
     @property
     def from_(self):
-        return None
+        return bytes()
 
 
 @command
-class TestCommand(Command):
-    id: UUID = field(default_factory=uuid4)
+class ExampleCommand(Command):
     name: str
-
-    @property
-    def identity(self):
-        return self.id
 
 
 @external_event
-class Example(ExternalEvent):
-    id: UUID = field(default_factory=uuid4)
+class ExampleExternalEvent(ExternalEvent):
     name: str
 
-    @property
-    def identity(self):
-        return self.id
+    def build_commands_(self):
+        return (
+            ExampleCommand(name=self.name),
+            Command(),
+        )
 
-    def build_commands(self) -> list[Command]:
-        return [TestCommand(name=self.name)]
+
+def test_frozen():
+    evt = ExampleExternalEvent(name="foo")
+    with pytest.raises(FrozenInstanceError):
+        evt.name = "bar"
 
 
-class TestExternalEvent:
-    def test_flow(self):
-        published_event = TestPublicEvent(name="blabla...")
-        message = published_event.dumps()
-        external_event = Example.loads(message)
-        cmd = external_event.build_commands()[0]
-        cmd = cast(TestCommand, cmd)
-        assert cmd.name == "blabla..."
+def test_loads():
+    jsonb = ExamplePublicEvent(name="blabla...").dumps_()
+    ExampleExternalEvent.loads_(jsonb)
+
+
+def test_build_commands():
+    origin_name = "BlaBla..."
+    public_event = ExamplePublicEvent(name=origin_name)
+    message_jsonb = public_event.dumps_()
+    external_event = ExampleExternalEvent.loads_(message_jsonb)
+    cmd = external_event.build_commands_()[0]
+    assert cmd.name == origin_name
