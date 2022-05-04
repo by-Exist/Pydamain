@@ -14,14 +14,14 @@ class MessageBus:
 
     @overload
     async def handle(
-        self, message: Message, return_hooked_task: Literal[True] = True
-    ) -> tuple[Any, asyncio.Future[list[Any]]]:
+        self, message: Message, return_hooked_task: Literal[False] = False
+    ) -> Any:
         ...
 
     @overload
     async def handle(
-        self, message: Message, return_hooked_task: Literal[False] = False
-    ) -> Any:
+        self, message: Message, return_hooked_task: Literal[True] = True
+    ) -> tuple[Any, asyncio.Future[list[Any]]]:
         ...
 
     async def handle(self, message: Message, return_hooked_task: bool = False):
