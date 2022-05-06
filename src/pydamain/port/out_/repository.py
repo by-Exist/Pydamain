@@ -5,12 +5,16 @@ if TYPE_CHECKING:
     from ...domain.models import Aggregate
 
 
-A = TypeVar("A", bound=Aggregate)
+AggregateType = TypeVar("AggregateType", bound=Aggregate)
+IdentityType = TypeVar("IdentityType", covariant=True)
 
 
-class Repository(Protocol[A]):
-    async def get(self, _id: Any) -> Optional[A]:
+class Repository(Protocol[AggregateType, IdentityType]):
+    async def get(self, _id: Any) -> Optional[AggregateType]:
         ...
 
-    async def set(self, _aggregate: A) -> None:
+    async def set(self, _aggregate: AggregateType) -> None:
+        ...
+
+    async def next_identity(self) -> IdentityType:
         ...
