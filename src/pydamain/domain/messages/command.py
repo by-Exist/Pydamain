@@ -1,30 +1,20 @@
 from dataclasses import dataclass, field
-from typing import Any, ClassVar, Optional, Protocol, TypeVar
+from typing import Any, ClassVar, TypeVar
 
 from typing_extensions import Self, dataclass_transform
 
 from .base import Message
-
-
-M_contra = TypeVar("M_contra", contravariant=True)
-
-
-class _CommandHandler(Protocol[M_contra]):
-
-    __name__: str
-
-    async def __call__(self, _msg: M_contra, **_: Any) -> Any:
-        ...
+from .typing_ import Handler
 
 
 C = TypeVar("C", bound="Command")
-CommandHandler = _CommandHandler[C]
+CommandHandler = Handler[C, Any]
 
 
 @dataclass(frozen=True, kw_only=True, slots=True)
 class Command(Message):
 
-    HANDLER: ClassVar[Optional[CommandHandler[Self]]] = None
+    HANDLER: ClassVar[CommandHandler[Self]]
 
     async def _pre_handle(self, handler: CommandHandler[Self]):
         ...
@@ -34,8 +24,6 @@ class Command(Message):
 
     async def handle_(self, deps: dict[str, Any]) -> Any:
         handler = type(self).HANDLER
-        if handler is None:
-            return
         await self._pre_handle(handler)
         result = await handler(self, **deps)
         await self._post_handle(handler)
