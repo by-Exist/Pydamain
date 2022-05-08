@@ -1,29 +1,20 @@
+from abc import abstractmethod
 from dataclasses import dataclass, field
-from typing import Any, ClassVar, Optional, Protocol
+from typing import Optional
 from typing_extensions import dataclass_transform
 
 from .event import Event
 
 
-class _Dumper(Protocol):
-    def dumps(self, obj: Any) -> bytes:
-        ...
-
-
-Dumper = _Dumper
-
-
 @dataclass(frozen=True, kw_only=True, slots=True)
 class PublicEvent(Event):
-
-    DUMPER: ClassVar[Dumper]
-
     @property
     def from_(self) -> Optional[bytes]:
         return None
 
+    @abstractmethod
     def dumps_(self) -> bytes:
-        return self.DUMPER.dumps(self)
+        ...
 
 
 @dataclass_transform(

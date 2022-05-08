@@ -1,5 +1,6 @@
 from dataclasses import FrozenInstanceError
 from typing import ClassVar
+from typing_extensions import Self
 
 from cattrs.preconf.orjson import make_converter  # type: ignore
 from cattr.preconf.orjson import OrjsonConverter  # type: ignore
@@ -18,13 +19,16 @@ from pydamain.domain.messages import (
 @public_event
 class ExamplePublicEvent(PublicEvent):
 
-    DUMPER: ClassVar[OrjsonConverter] = make_converter()
-
     name: str
+
+    _converter: ClassVar[OrjsonConverter] = make_converter()
 
     @property
     def from_(self):
         return bytes()
+
+    def dumps_(self) -> bytes:
+        return self._converter.dumps(self)  # type: ignore
 
 
 @command
@@ -36,9 +40,13 @@ class ExampleCommand(Command):
 @external_event
 class ExampleExternalEvent(ExternalEvent):
 
-    LOADER: ClassVar[OrjsonConverter] = make_converter()
-
     name: str
+
+    _converter: ClassVar[OrjsonConverter] = make_converter()
+
+    @classmethod
+    def loads_(cls, jsonb: bytes) -> Self:
+        return cls._converter.loads(jsonb, cls)
 
     def build_commands_(self):
         return (

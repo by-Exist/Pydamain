@@ -1,31 +1,17 @@
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass, field
-from typing import ClassVar, Protocol, TypeVar
-from typing_extensions import dataclass_transform
+from typing_extensions import Self, dataclass_transform
 
 from .command import Command
 from .event import Event
 
 
-T = TypeVar("T")
-
-
-class _Loader(Protocol):
-    def loads(self, data: bytes, cl: type[T]) -> T:
-        ...
-
-
-Loader = _Loader
-
-
 @dataclass(frozen=True, kw_only=True, slots=True)
 class ExternalEvent(Event, metaclass=ABCMeta):
-
-    LOADER: ClassVar[Loader]
-
     @classmethod
-    def loads_(cls, jsonb: bytes):
-        return cls.LOADER.loads(jsonb, cls)
+    @abstractmethod
+    def loads_(cls, jsonb: bytes) -> Self:
+        ...
 
     @abstractmethod
     def build_commands_(self) -> tuple[Command, ...]:

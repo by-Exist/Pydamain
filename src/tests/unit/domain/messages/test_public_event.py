@@ -6,9 +6,7 @@ from cattr.preconf.orjson import OrjsonConverter  # type: ignore
 import pytest
 
 from pydamain.domain.messages import (
-    ExternalEvent,
     PublicEvent,
-    external_event,
     public_event,
 )
 
@@ -16,17 +14,12 @@ from pydamain.domain.messages import (
 @public_event
 class ExamplePublicEvent(PublicEvent):
 
-    DUMPER: ClassVar[OrjsonConverter] = make_converter()
-
     name: str
 
+    _converter: ClassVar[OrjsonConverter] = make_converter()
 
-@external_event
-class ExampleExternalEvent(ExternalEvent):
-
-    LOADER: ClassVar[OrjsonConverter] = make_converter()
-
-    name: str
+    def dumps_(self) -> bytes:
+        return self._converter.dumps(self)  # type: ignore
 
 
 def test_frozen():
