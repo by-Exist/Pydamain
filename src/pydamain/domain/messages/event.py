@@ -8,9 +8,9 @@ from .base import Message
 from .typing_ import Handler
 
 
-E = TypeVar("E", bound="Event")
-EventHandler = Handler[E, Any]
-EventHandlers = Iterable[EventHandler[E]]
+SelfEvent = TypeVar("SelfEvent", bound="Event")
+EventHandler = Handler[SelfEvent, Any]
+EventHandlers = Iterable[EventHandler[SelfEvent]]
 
 
 @dataclass(frozen=True, kw_only=True, slots=True)

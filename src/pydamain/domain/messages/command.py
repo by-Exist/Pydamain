@@ -7,8 +7,8 @@ from .base import Message
 from .typing_ import Handler
 
 
-C = TypeVar("C", bound="Command")
-CommandHandler = Handler[C, Any]
+SelfCommand = TypeVar("SelfCommand", bound="Command")
+CommandHandler = Handler[SelfCommand, Any]
 
 
 @dataclass(frozen=True, kw_only=True, slots=True)
@@ -22,7 +22,7 @@ class Command(Message):
     async def _post_handle(self, handler: CommandHandler[Self]):
         ...
 
-    async def handle_(self, deps: dict[str, Any]) -> Any:
+    async def handle_(self, deps: dict[str, Any]):
         handler = type(self).HANDLER
         await self._pre_handle(handler)
         result = await handler(self, **deps)
