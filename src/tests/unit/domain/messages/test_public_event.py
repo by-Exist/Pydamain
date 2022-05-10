@@ -7,11 +7,9 @@ import pytest
 
 from pydamain.domain.messages import (
     PublicEvent,
-    public_event,
 )
 
 
-@public_event
 class ExamplePublicEvent(PublicEvent):
 
     name: str

@@ -2,19 +2,33 @@ from abc import ABCMeta, abstractmethod
 from contextvars import ContextVar, Token
 from dataclasses import dataclass, field
 from types import TracebackType
-from typing import Any, Optional, final
+from typing import Any, Optional
+from typing_extensions import Self, dataclass_transform
 
 
-@dataclass(frozen=True, kw_only=True, slots=True)
-class Message(metaclass=ABCMeta):
+@dataclass_transform(
+    eq_default=True,
+    order_default=False,
+    kw_only_default=True,
+    field_descriptors=(field,),
+)
+class MessageMeta(ABCMeta):
+    def __new__(
+        cls: type[Self], name: str, bases: tuple[type, ...], namespace: dict[str, Any]
+    ) -> Self:
+        new_cls = super().__new__(cls, name, bases, namespace)
+        return dataclass(frozen=True, kw_only=True)(new_cls)  # type: ignore
+
+
+class Message(metaclass=MessageMeta):
     @abstractmethod
     async def handle_(self, deps: dict[str, Any]) -> Any:
         ...
 
-    @final
-    def hook_(self):
-        messages = messages_context_var.get()
-        messages.add(self)
+
+def issue(msg: Message):
+    messages = messages_context_var.get()
+    messages.add(msg)
 
 
 messages_context_var: ContextVar[set[Message]] = ContextVar("messages")

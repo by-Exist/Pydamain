@@ -3,7 +3,7 @@ from typing import Any, ClassVar
 from typing_extensions import Self
 import pytest
 
-from pydamain.domain.messages import Event, event, EventHandlers
+from pydamain.domain.messages import Event, EventHandlers
 
 
 async def example_event_handler_one(evt: "ExampleEvent", **_: Any):
@@ -14,7 +14,6 @@ async def example_event_handler_two(evt: "ExampleEvent", **_: Any):
     return 2
 
 
-@event
 class ExampleEvent(Event):
 
     HANDLERS: ClassVar[EventHandlers[Self]] = [
@@ -33,5 +32,5 @@ def test_frozen():
 
 async def test_handle():
     evt = ExampleEvent(name="foo")
-    result = await evt.handle_({})
+    result = await evt.handle_({})  # type: ignore
     assert result == [1, 2]

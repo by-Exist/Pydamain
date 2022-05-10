@@ -10,13 +10,9 @@ from pydamain.domain.messages import (
     Command,
     ExternalEvent,
     PublicEvent,
-    command,
-    external_event,
-    public_event,
 )
 
 
-@public_event
 class ExamplePublicEvent(PublicEvent):
 
     name: str
@@ -31,13 +27,11 @@ class ExamplePublicEvent(PublicEvent):
         return self._converter.dumps(self)  # type: ignore
 
 
-@command
 class ExampleCommand(Command):
 
     name: str
 
 
-@external_event
 class ExampleExternalEvent(ExternalEvent):
 
     name: str

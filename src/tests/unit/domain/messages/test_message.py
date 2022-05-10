@@ -2,7 +2,7 @@ from typing import Any
 
 import pytest
 
-from pydamain.domain.messages.base import Message, MessageCatchContext
+from pydamain.domain.messages.message import Message, MessageCatchContext, issue
 
 
 class ExampleMessage(Message):
@@ -14,13 +14,13 @@ def test_hook():
     m1 = ExampleMessage()
     m2 = ExampleMessage()
     with MessageCatchContext() as message_catcher:
-        m1.hook_()
-        m2.hook_()
-        m2.hook_()
+        issue(m1)
+        issue(m2)
+        issue(m2)
     assert {m1, m2} == message_catcher.messages
 
 
 def test_hook_without_catcher():
     m = ExampleMessage()
     with pytest.raises(LookupError):
-        m.hook_()
+        issue(m)

@@ -1,10 +1,9 @@
-from dataclasses import dataclass, field
 from typing import Any, ClassVar, Iterable, TypeVar
 import asyncio
 
-from typing_extensions import Self, dataclass_transform
+from typing_extensions import Self
 
-from .base import Message
+from .message import Message
 from .typing_ import Handler
 
 
@@ -13,7 +12,6 @@ EventHandler = Handler[SelfEvent, Any]
 EventHandlers = Iterable[EventHandler[SelfEvent]]
 
 
-@dataclass(frozen=True, kw_only=True, slots=True)
 class Event(Message):
 
     HANDLERS: ClassVar[EventHandlers[Self]]
@@ -34,14 +32,3 @@ class Event(Message):
         result = await handler(self, **deps)
         await self._post_handle(handler)
         return result
-
-
-@dataclass_transform(
-    eq_default=True,
-    order_default=False,
-    kw_only_default=True,
-    field_descriptors=(field,),
-)
-def event(cls: type[Event]):  # type: ignore
-    assert issubclass(cls, Event)
-    return dataclass(cls, frozen=True, kw_only=True, slots=True)  # type: ignore

@@ -1,7 +1,7 @@
 import asyncio
 from typing import Any, Literal, overload
 
-from ..messages.base import Message, MessageCatchContext
+from ..messages.message import Message, MessageCatchContext
 
 
 class MessageBus:
@@ -25,15 +25,15 @@ class MessageBus:
         ...
 
     async def handle(self, message: Message, return_hooked_task: bool = False):
-        result, hooked = await asyncio.create_task(self._handle_message(message))
-        coros = (self._handle_message(msg) for msg in hooked)
+        result, hooked = await asyncio.create_task(self._handle(message))
+        coros = (self._handle(msg) for msg in hooked)
         hooked_task = asyncio.gather(*coros, return_exceptions=True)
         if return_hooked_task:
             return result, hooked_task
         await hooked_task
         return result
 
-    async def _handle_message(self, message: Message):
+    async def _handle(self, message: Message):
         with MessageCatchContext() as message_catcher:
             result = await message.handle_(deps=self._deps)
         return result, message_catcher.messages

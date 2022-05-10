@@ -3,7 +3,7 @@ from typing import Any, ClassVar
 from typing_extensions import Self
 import pytest
 
-from pydamain.domain.messages import Command, command, CommandHandler
+from pydamain.domain.messages import Command, CommandHandler
 
 
 check_handled = False
@@ -15,7 +15,6 @@ async def example_command_handler(cmd: "ExampleCommand", some: str, **_: Any):
     return some
 
 
-@command
 class ExampleCommand(Command):
 
     HANDLER: ClassVar[CommandHandler[Self]] = example_command_handler
@@ -31,5 +30,5 @@ def test_frozen():
 
 async def test_handle():
     cmd = ExampleCommand(name="foo")
-    result = await cmd.handle_({"some": "value"})
+    result = await cmd.handle_({"some": "value"})  # type: ignore
     assert result == "value"
