@@ -1,14 +1,8 @@
+from abc import ABCMeta
 from dataclasses import dataclass, field
+from typing import Any
 
-from typing_extensions import dataclass_transform
-
-
-# ============================================================================
-# Value Object
-# ============================================================================
-@dataclass(frozen=True, kw_only=True, slots=True)
-class ValueObject:
-    ...
+from typing_extensions import Self, dataclass_transform
 
 
 @dataclass_transform(
@@ -17,6 +11,13 @@ class ValueObject:
     kw_only_default=True,
     field_descriptors=(field,),
 )
-def value_object(cls: type[ValueObject]):  # type: ignore
-    assert issubclass(cls, ValueObject)
-    return dataclass(cls, frozen=True, kw_only=True, slots=True)  # type: ignore
+class ValueObjectMeta(ABCMeta):
+    def __new__(
+        cls: type[Self], name: str, bases: tuple[type, ...], namespace: dict[str, Any]
+    ) -> Self:
+        new_cls = super().__new__(cls, name, bases, namespace)
+        return dataclass(frozen=True, kw_only=True)(new_cls)  # type: ignore
+
+
+class ValueObject(metaclass=ValueObjectMeta):
+    ...
