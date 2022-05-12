@@ -16,7 +16,7 @@ class EntityMeta(ABCMeta):
         cls: type[Self], name: str, bases: tuple[type, ...], namespace: dict[str, Any]
     ) -> Self:
         new_cls = super().__new__(cls, name, bases, namespace)
-        return dataclass(kw_only=True)(new_cls)  # type: ignore
+        return dataclass(eq=False, kw_only=True)(new_cls)  # type: ignore
 
 
 class Entity(metaclass=EntityMeta):
