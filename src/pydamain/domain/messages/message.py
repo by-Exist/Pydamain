@@ -1,8 +1,9 @@
-from abc import ABCMeta, abstractmethod
+from abc import ABCMeta
 from contextvars import ContextVar, Token
 from dataclasses import dataclass, field
 from types import TracebackType
 from typing import Any, Optional
+
 from typing_extensions import Self, dataclass_transform
 
 
@@ -21,10 +22,6 @@ class MessageMeta(ABCMeta):
 
 
 class Message(metaclass=MessageMeta):
-    @abstractmethod
-    async def handle_(self, deps: dict[str, Any]) -> Any:
-        ...
-
     def issue_(self):
         messages = messages_context_var.get()
         messages.add(self)

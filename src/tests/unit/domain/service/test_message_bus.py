@@ -1,16 +1,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Any
 
-from typing import Any, ClassVar
-from typing_extensions import Self
-
-from pydamain.domain.messages import (
-    Command,
-    CommandHandler,
-    Event,
-    EventHandlers,
-)
+from pydamain.domain.messages import Command, Event
 from pydamain.domain.service import MessageBus
 
 
@@ -23,8 +16,7 @@ async def example_command_handler(
 
 
 class ExampleCommand(Command):
-
-    HANDLER: ClassVar[CommandHandler[Self]] = example_command_handler
+    ...
 
 
 async def example_event_handler_one(
@@ -40,11 +32,7 @@ async def example_event_handler_two(
 
 
 class ExampleEvent(Event):
-
-    HANDLERS: ClassVar[EventHandlers[Self]] = [
-        example_event_handler_one,
-        example_event_handler_two,
-    ]
+    ...
 
 
 @dataclass
@@ -56,16 +44,22 @@ class Switch:
         self.is_on = True
 
 
-async def test_handle_without_return_hooked_task():
+async def test_handle():
     command_switch = Switch()
     event_switch_one = Switch()
     event_switch_two = Switch()
     bus = MessageBus(
-        deps={
+        command_deps={
             "example_command_switch": command_switch,
+        },
+        event_deps={
             "example_event_switch_one": event_switch_one,
             "example_event_switch_two": event_switch_two,
-        }
+        },
+    )
+    bus.register_command(ExampleCommand, example_command_handler)
+    bus.register_event(
+        ExampleEvent, (example_event_handler_one, example_event_handler_two)
     )
     result = await bus.handle(ExampleCommand())
     assert result == "success"
@@ -79,11 +73,17 @@ async def test_handle_with_return_hooked_task():
     event_switch_one = Switch()
     event_switch_two = Switch()
     bus = MessageBus(
-        deps={
+        command_deps={
             "example_command_switch": command_switch,
+        },
+        event_deps={
             "example_event_switch_one": event_switch_one,
             "example_event_switch_two": event_switch_two,
-        }
+        },
+    )
+    bus.register_command(ExampleCommand, example_command_handler)
+    bus.register_event(
+        ExampleEvent, (example_event_handler_one, example_event_handler_two)
     )
     result, task = await bus.handle(ExampleCommand(), return_hooked_task=True)
     assert result == "success"
