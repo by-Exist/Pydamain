@@ -25,10 +25,9 @@ class Message(metaclass=MessageMeta):
     async def handle_(self, deps: dict[str, Any]) -> Any:
         ...
 
-
-def issue(msg: Message):
-    messages = messages_context_var.get()
-    messages.add(msg)
+    def issue_(self):
+        messages = messages_context_var.get()
+        messages.add(self)
 
 
 messages_context_var: ContextVar[set[Message]] = ContextVar("messages")

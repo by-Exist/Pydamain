@@ -10,7 +10,6 @@ from pydamain.domain.messages import (
     CommandHandler,
     Event,
     EventHandlers,
-    issue,
 )
 from pydamain.domain.service import MessageBus
 
@@ -19,7 +18,7 @@ async def example_command_handler(
     cmd: ExampleCommand, example_command_switch: Switch, **_: Any
 ):
     example_command_switch.on()
-    issue(ExampleEvent())
+    ExampleEvent().issue_()
     return "success"
 
 
