@@ -10,5 +10,5 @@ class PublicEvent(Event):
         return None
 
     @abstractmethod
-    def dumps_(self) -> bytes:
+    def dump_(self) -> bytes:
         ...

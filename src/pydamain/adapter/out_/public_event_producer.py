@@ -53,4 +53,4 @@ class BaseKafkaPublicEventProducer(PublicEventProducer):
 
     @classmethod
     def generate_value(cls, public_event: PublicEvent) -> bytes:
-        return public_event.dumps_()
+        return public_event.dump_()

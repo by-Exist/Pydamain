@@ -23,7 +23,7 @@ class ExamplePublicEvent(PublicEvent):
     def from_(self):
         return bytes()
 
-    def dumps_(self) -> bytes:
+    def dump_(self) -> bytes:
         return self._converter.dumps(self)  # type: ignore
 
 
@@ -39,7 +39,7 @@ class ExampleExternalEvent(ExternalEvent):
     _converter: ClassVar[OrjsonConverter] = make_converter()
 
     @classmethod
-    def loads_(cls, jsonb: bytes) -> Self:
+    def load_(cls, jsonb: bytes) -> Self:
         return cls._converter.loads(jsonb, cls)
 
     def build_commands_(self):
@@ -57,15 +57,15 @@ def test_frozen():
 
 def test_loads():
     public_event = ExamplePublicEvent(name="blabla...")
-    jsonb = public_event.dumps_()
-    external_event = ExampleExternalEvent.loads_(jsonb)
+    jsonb = public_event.dump_()
+    external_event = ExampleExternalEvent.load_(jsonb)
     assert external_event.name == public_event.name
 
 
 def test_build_commands():
     origin_name = "BlaBla..."
     public_event = ExamplePublicEvent(name=origin_name)
-    message_jsonb = public_event.dumps_()
-    external_event = ExampleExternalEvent.loads_(message_jsonb)
+    message_jsonb = public_event.dump_()
+    external_event = ExampleExternalEvent.load_(message_jsonb)
     cmd = external_event.build_commands_()[0]
     assert cmd.name == origin_name

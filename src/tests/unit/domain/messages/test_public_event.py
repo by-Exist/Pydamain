@@ -16,7 +16,7 @@ class ExamplePublicEvent(PublicEvent):
 
     _converter: ClassVar[OrjsonConverter] = make_converter()
 
-    def dumps_(self) -> bytes:
+    def dump_(self) -> bytes:
         return self._converter.dumps(self)  # type: ignore
 
 
@@ -28,5 +28,5 @@ def test_frozen():
 
 def test_dumps():
     public_event = ExamplePublicEvent(name="foo")
-    jsonb = public_event.dumps_()
+    jsonb = public_event.dump_()
     assert isinstance(jsonb, bytes)

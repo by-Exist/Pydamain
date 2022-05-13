@@ -8,7 +8,7 @@ from .event import Event
 class ExternalEvent(Event):
     @classmethod
     @abstractmethod
-    def loads_(cls, jsonb: bytes) -> Self:
+    def load_(cls, jsonb: bytes) -> Self:
         ...
 
     @abstractmethod

@@ -54,4 +54,4 @@ class BaseKafkaExternalEventConsumer(ExternalEventConsumer):
     @classmethod
     def deserialize_value(cls, topic: str, value: bytes):
         external_event_type = cls.TOPIC_NAME_EXTERNAL_EVENT_TYPE_MAP[topic]
-        return external_event_type.loads_(value)
+        return external_event_type.load_(value)
