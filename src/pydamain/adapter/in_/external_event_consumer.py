@@ -45,7 +45,7 @@ class BaseKafkaExternalEventConsumer(ExternalEventConsumer):
                 external_event = self.deserialize_value(record.topic, record.value)
                 await self.pre_consume(external_event)
                 for command in external_event.build_commands_():
-                    await self.bus.handle(command)
+                    await self.bus.dispatch(command)
                 await self.post_consume(external_event)
                 await self._aiokafka_consumer.commit()  # type: ignore
         finally:

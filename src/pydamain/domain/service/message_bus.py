@@ -34,18 +34,18 @@ class MessageBus:
         self._event_handler_map[event_type] = handlers
 
     @overload
-    async def handle(
+    async def dispatch(
         self, message: Message, return_hooked_task: Literal[False] = False
     ) -> Any:
         ...
 
     @overload
-    async def handle(
+    async def dispatch(
         self, message: Message, return_hooked_task: Literal[True] = True
     ) -> tuple[Any, asyncio.Future[list[Any]]]:
         ...
 
-    async def handle(self, message: Message, return_hooked_task: bool = False):
+    async def dispatch(self, message: Message, return_hooked_task: bool = False):
         result, hooked = await asyncio.create_task(self._handle(message))
         coros = (self._handle(msg) for msg in hooked)
         hooked_task = asyncio.gather(*coros, return_exceptions=True)

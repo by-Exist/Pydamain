@@ -61,7 +61,7 @@ async def test_handle():
     bus.register_event(
         ExampleEvent, (example_event_handler_one, example_event_handler_two)
     )
-    result = await bus.handle(ExampleCommand())
+    result = await bus.dispatch(ExampleCommand())
     assert result == "success"
     assert command_switch.is_on == True
     assert event_switch_one.is_on == True
@@ -85,7 +85,7 @@ async def test_handle_with_return_hooked_task():
     bus.register_event(
         ExampleEvent, (example_event_handler_one, example_event_handler_two)
     )
-    result, task = await bus.handle(ExampleCommand(), return_hooked_task=True)
+    result, task = await bus.dispatch(ExampleCommand(), return_hooked_task=True)
     assert result == "success"
     assert command_switch.is_on == True
     assert event_switch_one.is_on == False
