@@ -1,7 +1,7 @@
 from dataclasses import FrozenInstanceError
 import pytest
 
-from pydamain.domain.messages.message import Message, MessageCatchContext
+from pydamain.domain.messages.base import Message, MessageCatchContext
 from pydamain.domain.messages import issue
 
 

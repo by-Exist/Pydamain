@@ -2,7 +2,7 @@ import asyncio
 from typing import Any, Iterable, Literal, TypeVar, overload
 
 from ..messages import Command, Event
-from ..messages.message import Message, MessageCatchContext
+from ..messages.base import Message, MessageCatchContext
 
 from .handler import Handler
 
