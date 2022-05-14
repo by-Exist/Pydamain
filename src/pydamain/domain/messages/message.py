@@ -22,9 +22,12 @@ class MessageMeta(ABCMeta):
 
 
 class Message(metaclass=MessageMeta):
-    def issue_(self):
-        messages = messages_context_var.get()
-        messages.add(self)
+    ...
+
+
+def issue(message: Message):
+    messages = messages_context_var.get()
+    messages.add(message)
 
 
 messages_context_var: ContextVar[set[Message]] = ContextVar("messages")

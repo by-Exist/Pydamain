@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from pydamain.domain.messages import Command, Event
+from pydamain.domain.messages import Command, Event, issue
 from pydamain.domain.service import MessageBus
 
 
@@ -11,7 +11,7 @@ async def example_command_handler(
     cmd: ExampleCommand, example_command_switch: Switch, **_: Any
 ):
     example_command_switch.on()
-    ExampleEvent().issue_()
+    issue(ExampleEvent())
     return "success"
 
 
