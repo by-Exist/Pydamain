@@ -49,18 +49,14 @@ async def test_handle():
     event_switch_one = Switch()
     event_switch_two = Switch()
     bus = MessageBus(
-        command_deps={
+        deps={
             "example_command_switch": command_switch,
-        },
-        event_deps={
             "example_event_switch_one": event_switch_one,
             "example_event_switch_two": event_switch_two,
-        },
+        }
     )
-    bus.register_command(ExampleCommand, example_command_handler)
-    bus.register_event(
-        ExampleEvent, (example_event_handler_one, example_event_handler_two)
-    )
+    bus.register(ExampleCommand, example_command_handler)
+    bus.register(ExampleEvent, (example_event_handler_one, example_event_handler_two))
     result = await bus.dispatch(ExampleCommand())
     assert result == "success"
     assert command_switch.is_on == True
@@ -73,18 +69,14 @@ async def test_handle_with_return_hooked_task():
     event_switch_one = Switch()
     event_switch_two = Switch()
     bus = MessageBus(
-        command_deps={
+        deps={
             "example_command_switch": command_switch,
-        },
-        event_deps={
             "example_event_switch_one": event_switch_one,
             "example_event_switch_two": event_switch_two,
         },
     )
-    bus.register_command(ExampleCommand, example_command_handler)
-    bus.register_event(
-        ExampleEvent, (example_event_handler_one, example_event_handler_two)
-    )
+    bus.register(ExampleCommand, example_command_handler)
+    bus.register(ExampleEvent, (example_event_handler_one, example_event_handler_two))
     result, task = await bus.dispatch(ExampleCommand(), return_hooked_task=True)
     assert result == "success"
     assert command_switch.is_on == True

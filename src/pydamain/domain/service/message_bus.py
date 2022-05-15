@@ -1,42 +1,55 @@
 import asyncio
-from typing import Any, Iterable, Literal, TypeVar, overload
+from typing import (
+    Any,
+    Literal,
+    TypeVar,
+    overload,
+)
 
-from ..messages import Command, Event
 from ..messages.base import Message, MessageCatchContext
 
 from .handler import Handler
 
+M = TypeVar("M", bound=Message)
+R = TypeVar("R")
+Handlers = tuple[Handler[M, R], ...]
 
-C = TypeVar("C", bound=Command)
-E = TypeVar("E", bound=Event)
 
-CommandHandler = Handler[C, Any]
-EventHandler = Handler[E, Any]
-EventHandlers = Iterable[EventHandler[E]]
+async def handle(
+    message: M,
+    handler: Handler[M, Any],
+    deps: dict[str, Any],
+):
+    return await handler(message, **deps)
+
+
+async def handle_parallel(
+    message: M,
+    handlers: tuple[Handler[M, Any], ...],
+    deps: dict[str, Any],
+):
+    coros = (handle(message, handler, deps) for handler in handlers)
+    return await asyncio.gather(*coros, return_exceptions=True)
 
 
 class MessageBus:
     def __init__(
         self,
         *,
-        command_deps: dict[str, Any],
-        event_deps: dict[str, Any],
+        deps: dict[str, Any],
     ) -> None:
-        self._command_deps: dict[str, Any] = command_deps
-        self._event_deps: dict[str, Any] = event_deps
-        self._command_handler_map: dict[type[Command], CommandHandler[Any]] = {}
-        self._event_handler_map: dict[type[Event], EventHandlers[Any]] = {}
+        self._deps: dict[str, Any] = deps
+        self._handler_map: dict[
+            type[Message], Handler[Message, Any] | Handlers[Message, Any]
+        ] = {}
 
-    def register_command(self, command_type: type[C], handler: CommandHandler[C]):
-        self._command_handler_map[command_type] = handler
-
-    def register_event(self, event_type: type[E], handlers: EventHandlers[E]):
-        self._event_handler_map[event_type] = handlers
+    def register(
+        self, message_type: type[M], handler: Handler[M, Any] | Handlers[M, Any]
+    ):
+        self._handler_map[message_type] = handler
 
     @overload
-    async def dispatch(
-        self, message: Message, return_hooked_task: Literal[False] = False
-    ) -> Any:
+    async def dispatch(self, message: Message) -> Any:
         ...
 
     @overload
@@ -46,50 +59,19 @@ class MessageBus:
         ...
 
     async def dispatch(self, message: Message, return_hooked_task: bool = False):
-        result, hooked = await asyncio.create_task(self._handle(message))
-        coros = (self._handle(msg) for msg in hooked)
+        result, hooked = await asyncio.create_task(self._dispatch(message))
+        coros = (self._dispatch(msg) for msg in hooked)
         hooked_task = asyncio.gather(*coros, return_exceptions=True)
         if return_hooked_task:
             return result, hooked_task
         await hooked_task
         return result
 
-    async def _handle(self, message: Message):
+    async def _dispatch(self, message: Message):
         with MessageCatchContext() as message_catcher:
-            if isinstance(message, Command):
-                result = await self._handle_command(message)
-            elif isinstance(message, Event):
-                result = await self._handle_event(message)
+            handler = self._handler_map[type(message)]
+            if isinstance(handler, tuple):
+                result = await handle_parallel(message, handler, self._deps)
             else:
-                raise RuntimeError("message must be a command or an event.")
+                result = await handle(message, handler, self._deps)
         return result, message_catcher.messages
-
-    async def _handle_command(self, command: Command):
-        handler = self._command_handler_map[type(command)]
-        await self._pre_handle_command(command, handler)
-        result = await handler(command, **self._command_deps)
-        await self._post_handle_command(command, handler)
-        return result
-
-    async def _handle_event(self, event: Event):
-        handlers = self._event_handler_map[type(event)]
-        coros = (self.__handle_event(event, handler) for handler in handlers)
-        return await asyncio.gather(*coros, return_exceptions=True)
-
-    async def __handle_event(self, event: E, handler: EventHandler[E]):
-        await self._pre_handle_event(event, handler)
-        result = await handler(event, **self._event_deps)
-        await self._post_handle_event(event, handler)
-        return result
-
-    async def _pre_handle_command(self, command: C, handler: CommandHandler[C]):
-        ...
-
-    async def _post_handle_command(self, command: C, handler: CommandHandler[C]):
-        ...
-
-    async def _pre_handle_event(self, event: E, handler: EventHandler[E]):
-        ...
-
-    async def _post_handle_event(self, event: E, handler: EventHandler[E]):
-        ...
