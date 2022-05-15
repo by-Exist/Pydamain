@@ -1,11 +1,7 @@
-from typing import TYPE_CHECKING, Optional, Protocol, TypeVar
+from typing import Optional, Protocol, TypeVar
 
 
-if TYPE_CHECKING:
-    from ...domain.models import Aggregate
-
-
-AggregateType = TypeVar("AggregateType", bound=Aggregate)
+AggregateType = TypeVar("AggregateType")
 IdentityType = TypeVar("IdentityType")
 
 
@@ -19,7 +15,7 @@ class CollectionOrientedRepository(Protocol[AggregateType, IdentityType]):
     async def delete(self, _aggregate: AggregateType) -> None:
         ...
 
-    async def next_identity(self) -> IdentityType:
+    def next_identity(self) -> IdentityType:
         ...
 
 
@@ -33,5 +29,5 @@ class PersistenceOrientedRepository(Protocol[AggregateType, IdentityType]):
     async def delete(self, _aggregate: AggregateType) -> None:
         ...
 
-    async def next_identity(self) -> IdentityType:
+    def next_identity(self) -> IdentityType:
         ...

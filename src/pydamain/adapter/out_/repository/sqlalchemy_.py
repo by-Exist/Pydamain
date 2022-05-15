@@ -1,6 +1,6 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Callable, Optional
-from sqlalchemy.ext.asyncio import AsyncSession  # type: ignore
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from ....port.out_.repository import (
     CollectionOrientedRepository,
@@ -14,19 +14,19 @@ class BaseSQLAlchemyRepository(
     CollectionOrientedRepository[AggregateType, IdentityType]
 ):
 
-    AGGREGATE_TYPE: type[AggregateType]
-    IDENTITY_FACTORY: Callable[[], IdentityType]
+    AGGREGATE_TYPE: type[AggregateType] = field(init=False)
+    IDENTITY_FACTORY: Callable[[], IdentityType] = field(init=False)
 
-    session: AsyncSession
+    _session: AsyncSession
 
     async def get(self, id: Any) -> Optional[AggregateType]:
-        return await self.session.get(self.AGGREGATE_TYPE, id)  # type: ignore
+        return await self._session.get(self.AGGREGATE_TYPE, id)  # type: ignore
 
     async def add(self, aggregate: AggregateType) -> None:
-        self.session.add(aggregate)  # type: ignore
+        self._session.add(aggregate)  # type: ignore
 
-    async def delete(self, _aggregate: AggregateType) -> None:
-        await self.session.delete(_aggregate)  # type: ignore
+    async def delete(self, aggregate: AggregateType) -> None:
+        await self._session.delete(aggregate)  # type: ignore
 
-    async def next_identity(self) -> IdentityType:
+    def next_identity(self) -> IdentityType:
         return self.IDENTITY_FACTORY()
