@@ -2,26 +2,25 @@ from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass, field
 from typing import Any
 
-from typing_extensions import dataclass_transform
-
-
-# ============================================================================
-# Entity
-# ============================================================================
-@dataclass(eq=False, kw_only=True, slots=True)
-class Entity(metaclass=ABCMeta):
-    @property
-    @abstractmethod
-    def identity(self) -> Any:
-        ...
+from typing_extensions import Self, dataclass_transform
 
 
 @dataclass_transform(
-    eq_default=False,
+    eq_default=True,
     order_default=False,
     kw_only_default=True,
     field_descriptors=(field,),
 )
-def entity(cls: type[Entity]):  # type: ignore
-    assert issubclass(cls, Entity)
-    return dataclass(cls, eq=False, kw_only=True, slots=True)  # type: ignore
+class EntityMeta(ABCMeta):
+    def __new__(
+        cls: type[Self], name: str, bases: tuple[type, ...], namespace: dict[str, Any]
+    ) -> Self:
+        new_cls = super().__new__(cls, name, bases, namespace)
+        return dataclass(eq=False, kw_only=True)(new_cls)  # type: ignore
+
+
+class Entity(metaclass=EntityMeta):
+    @property
+    @abstractmethod
+    def identity(self) -> Any:
+        ...

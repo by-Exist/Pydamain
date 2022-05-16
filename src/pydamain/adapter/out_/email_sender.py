@@ -5,7 +5,7 @@ import mimetypes
 
 from aiosmtplib import send  # type: ignore
 
-from ....port.out_.notification import Notification
+from ...port.out_.email_sender import EmailSender
 
 
 @dataclass(slots=True, kw_only=True)
@@ -51,7 +51,7 @@ def build_email_message(
     return msg
 
 
-class BaseEmailNotification(Notification[EmailMessage]):
+class BaseEmailNotification(EmailSender):
 
     """
     # Example

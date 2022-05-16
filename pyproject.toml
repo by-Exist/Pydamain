@@ -1,6 +1,8 @@
+# https://python-poetry.org/
+
 [tool.poetry]
 name = "pydamain"
-version = "0.2.0"
+version = "0.3.0"
 description = "도메인 주도 설계 라이브러리."
 license = "Apache-2.0"
 authors = ["Jongbeom-Kwon <bolk9652@naver.com>"]
@@ -13,17 +15,11 @@ packages = [
 [tool.poetry.dependencies]
 python = "^3.10"
 typing-extensions = "^4.2.0"
-orjson = "^3.6.8"
-cattrs = "^22.1.0"
 SQLAlchemy = {version = "^1.4.36", optional = true}
-motor = {version = "^2.5.1", optional = true}
-aiokafka = {version = "^0.7.2", optional = true}
 aiosmtplib = {version = "^1.1.6", optional = true}
 
 [tool.poetry.extras]
 sqlalchemy = ["SQLAlchemy"]
-motor = ["motor"]
-aiokafka = ["aiokafka"]
 aiosmtplib = ["aiosmtplib"]
 
 [tool.poetry.dev-dependencies]

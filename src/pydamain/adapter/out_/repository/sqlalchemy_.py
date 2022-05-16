@@ -1,19 +1,32 @@
-from dataclasses import dataclass
-from typing import Any, ClassVar, Optional
+from dataclasses import dataclass, field
+from typing import Any, Callable, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ....port.out_.repository import Repository, A
+from ....port.out_.repository import (
+    CollectionOrientedRepository,
+    AggregateType,
+    IdentityType,
+)
 
 
 @dataclass
-class BaseSQLAlchemyRepository(Repository[A]):
+class BaseSQLAlchemyRepository(
+    CollectionOrientedRepository[AggregateType, IdentityType]
+):
 
-    AGGREGATE_TYPE: ClassVar[type[A]]  # type: ignore
+    AGGREGATE_TYPE: type[AggregateType] = field(init=False)
+    IDENTITY_FACTORY: Callable[[], IdentityType] = field(init=False)
 
-    session: AsyncSession
+    _session: AsyncSession
 
-    async def get(self, id: Any) -> Optional[A]:
-        return await self.session.get(self.AGGREGATE_TYPE, id)  # type: ignore
+    async def get(self, id: Any) -> Optional[AggregateType]:
+        return await self._session.get(self.AGGREGATE_TYPE, id)  # type: ignore
 
-    async def set(self, aggregate: A) -> None:
-        self.session.add(aggregate)  # type: ignore
+    async def add(self, aggregate: AggregateType) -> None:
+        self._session.add(aggregate)  # type: ignore
+
+    async def delete(self, aggregate: AggregateType) -> None:
+        await self._session.delete(aggregate)  # type: ignore
+
+    def next_identity(self) -> IdentityType:
+        return self.IDENTITY_FACTORY()

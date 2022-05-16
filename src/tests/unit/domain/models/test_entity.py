@@ -1,26 +1,25 @@
-from typing import Any
-from pydamain.domain.models import entity, Entity, field
+from pydamain.domain.models import Entity, field
 from uuid import UUID, uuid4
 
 
-@entity
 class Example(Entity):
-    id: UUID = field(default_factory=uuid4)
+    _id: UUID = field(default_factory=uuid4)
     name: str
 
     @property
     def identity(self):
-        return self.id
+        return self._id
 
 
-class TestValueObject:
-    a1 = Example(name="a")
-    a2 = Example(name="a")
+def test_entity_eq():
+    some_id = uuid4()
+    assert Example(_id=some_id, name="fdsa") != Example(_id=some_id, name="fdsa")
+    assert Example.__eq__ == object.__eq__
 
-    def test_entity_eq(self):
-        assert Example.__eq__ is object.__eq__
-        assert self.a1 != self.a2
 
-    def test_entity_hash(self):
-        assert Example.__hash__ is object.__hash__
-        assert len({self.a1, self.a2}) == 2
+def test_entity_hash():
+    some_id = uuid4()
+    assert (
+        len({Example(_id=some_id, name="fdsa"), Example(_id=some_id, name="fdsa")}) == 2
+    )
+    assert Example.__hash__ == object.__hash__

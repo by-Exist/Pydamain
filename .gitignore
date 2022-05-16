@@ -5,3 +5,4 @@ __pycache__/
 docker/
 .env
 .dockerignore
+poetry.lock
