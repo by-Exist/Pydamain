@@ -1,6 +1,8 @@
+# https://python-poetry.org/
+
 [tool.poetry]
 name = "pydamain"
-version = "0.2.0"
+version = "0.3.0"
 description = "도메인 주도 설계 라이브러리."
 license = "Apache-2.0"
 authors = ["Jongbeom-Kwon <bolk9652@naver.com>"]
