@@ -64,6 +64,30 @@ async def test_handle():
     assert event_switch_two.is_on == True
 
 
+async def test_hook():
+    command_switch = Switch()
+    pre_hook_switch = Switch()
+    post_hook_switch = Switch()
+
+    async def pre_hook(msg: Any, handler: Any):
+        pre_hook_switch.on()
+
+    async def post_hook(msg: Any, handler: Any):
+        post_hook_switch.on()
+
+    bus = MessageBus(
+        deps={
+            "example_command_switch": command_switch,
+        },
+        pre_hook=pre_hook,
+        post_hook=post_hook,
+    )
+    bus.register(ExampleCommand, example_command_handler)
+    await bus.dispatch(ExampleCommand())
+    assert pre_hook_switch.is_on
+    assert post_hook_switch.is_on
+
+
 async def test_handle_with_return_hooked_task():
     command_switch = Switch()
     event_switch_one = Switch()

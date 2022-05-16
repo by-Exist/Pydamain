@@ -1,6 +1,9 @@
 import asyncio
 from typing import (
     Any,
+    Optional,
+    Awaitable,
+    Callable,
     Literal,
     TypeVar,
     overload,
@@ -15,20 +18,34 @@ R = TypeVar("R")
 Handlers = tuple[Handler[M, R], ...]
 
 
+Hook = Callable[[M, Handler[M, R]], Awaitable[None]]
+
+
 async def handle(
     message: M,
     handler: Handler[M, Any],
     deps: dict[str, Any],
+    pre_hook: Optional[Hook[M, Any]] = None,
+    post_hook: Optional[Hook[M, Any]] = None,
 ):
-    return await handler(message, **deps)
+    if pre_hook:
+        await pre_hook(message, handler)
+    result = await handler(message, **deps)
+    if post_hook:
+        await post_hook(message, handler)
+    return result
 
 
 async def handle_parallel(
     message: M,
     handlers: tuple[Handler[M, Any], ...],
     deps: dict[str, Any],
+    pre_hook: Optional[Hook[M, Any]] = None,
+    post_hook: Optional[Hook[M, Any]] = None,
 ):
-    coros = (handle(message, handler, deps) for handler in handlers)
+    coros = (
+        handle(message, handler, deps, pre_hook, post_hook) for handler in handlers
+    )
     return await asyncio.gather(*coros, return_exceptions=True)
 
 
@@ -37,11 +54,15 @@ class MessageBus:
         self,
         *,
         deps: dict[str, Any],
+        pre_hook: Optional[Hook[M, Any]] = None,
+        post_hook: Optional[Hook[M, Any]] = None,
     ) -> None:
         self._deps: dict[str, Any] = deps
         self._handler_map: dict[
             type[Message], Handler[Message, Any] | Handlers[Message, Any]
         ] = {}
+        self._pre_hook = pre_hook
+        self._post_hook = post_hook
 
     def register(
         self, message_type: type[M], handler: Handler[M, Any] | Handlers[M, Any]
@@ -71,7 +92,11 @@ class MessageBus:
         with MessageCatchContext() as message_catcher:
             handler = self._handler_map[type(message)]
             if isinstance(handler, tuple):
-                result = await handle_parallel(message, handler, self._deps)
+                result = await handle_parallel(
+                    message, handler, self._deps, self._pre_hook, self._post_hook
+                )
             else:
-                result = await handle(message, handler, self._deps)
+                result = await handle(
+                    message, handler, self._deps, self._pre_hook, self._post_hook
+                )
         return result, message_catcher.messages
