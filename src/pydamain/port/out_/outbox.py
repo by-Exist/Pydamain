@@ -7,7 +7,7 @@ from ...domain.messages.event import Event
 IdentityType = TypeVar("IdentityType", contravariant=True)
 
 
-class Outbox(Protocol):
+class OutboxProtocol(Protocol):
     async def put(self, _id: UUID, _event: Event) -> None:
         ...
 

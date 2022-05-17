@@ -5,7 +5,7 @@ AggregateType = TypeVar("AggregateType")
 IdentityType = TypeVar("IdentityType")
 
 
-class CollectionOrientedRepository(Protocol[AggregateType, IdentityType]):
+class CollectionOrientedRepositoryProtocol(Protocol[AggregateType, IdentityType]):
     async def add(self, _id: IdentityType, _aggregate: AggregateType) -> None:
         ...
 
@@ -19,7 +19,7 @@ class CollectionOrientedRepository(Protocol[AggregateType, IdentityType]):
         ...
 
 
-class PersistenceOrientedRepository(Protocol[AggregateType, IdentityType]):
+class PersistenceOrientedRepositoryProtocol(Protocol[AggregateType, IdentityType]):
     async def save(self, _id: IdentityType, _aggregate: AggregateType) -> None:
         ...
 
