@@ -4,11 +4,11 @@ from typing import Callable, Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession  # type: ignore
 
-from ....port.out_.unit_of_work import UnitOfWork
+from ....port.out_.unit_of_work import UnitOfWorkProtocol
 
 
 @dataclass
-class BaseSQLAlchemyUnitOfWork(UnitOfWork):
+class BaseSQLAlchemyUnitOfWork(UnitOfWorkProtocol):
 
     SESSION_FACTORY: Callable[[], AsyncSession]
 

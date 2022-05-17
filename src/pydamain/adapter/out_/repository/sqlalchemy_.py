@@ -3,7 +3,7 @@ from typing import Any, Callable, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ....port.out_.repository import (
-    CollectionOrientedRepository,
+    CollectionOrientedRepositoryProtocol,
     AggregateType,
     IdentityType,
 )
@@ -11,7 +11,7 @@ from ....port.out_.repository import (
 
 @dataclass
 class BaseSQLAlchemyRepository(
-    CollectionOrientedRepository[AggregateType, IdentityType]
+    CollectionOrientedRepositoryProtocol[AggregateType, IdentityType]
 ):
 
     AGGREGATE_TYPE: type[AggregateType] = field(init=False)
