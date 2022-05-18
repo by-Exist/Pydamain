@@ -1,14 +1,13 @@
 from typing import Protocol, TypeVar
 
-from ...domain.messages.event import Event
+
+EventType = TypeVar("EventType", contravariant=True)
+AggregateType = TypeVar("AggregateType", contravariant=True)
 
 
-IdentityType = TypeVar("IdentityType", contravariant=True)
-
-
-class OutboxProtocol(Protocol):
-    async def put(self, _event: Event) -> None:
+class OutboxProtocol(Protocol[EventType, AggregateType]):
+    async def put(self, _event: EventType, _aggregate: AggregateType) -> None:
         ...
 
-    async def delete(self, _event: Event) -> None:
+    async def delete(self, _event: EventType) -> None:
         ...
