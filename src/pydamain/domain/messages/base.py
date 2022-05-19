@@ -30,13 +30,16 @@ def issue(message: Message):
     messages.add(message)
 
 
+def get_issued_messages():
+    return messages_context_var.get()
+
+
 messages_context_var: ContextVar[set[Message]] = ContextVar("messages")
 
 
 @dataclass(slots=True)
 class MessageCatchContext:
 
-    messages: set[Message] = field(default_factory=set, init=False)
     _token: Token[set[Message]] = field(init=False)
 
     def __enter__(self):
@@ -49,5 +52,4 @@ class MessageCatchContext:
         __exc_value: Optional[BaseException],
         __traceback: Optional[TracebackType],
     ) -> Optional[bool]:
-        self.messages = messages_context_var.get()
         messages_context_var.reset(self._token)

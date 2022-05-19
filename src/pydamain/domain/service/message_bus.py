@@ -9,7 +9,7 @@ from typing import (
     overload,
 )
 
-from ..messages.base import Message, MessageCatchContext
+from ..messages.base import Message, MessageCatchContext, get_issued_messages
 
 from .handler import Handler
 
@@ -89,7 +89,7 @@ class MessageBus:
         return result
 
     async def _dispatch(self, message: Message):
-        with MessageCatchContext() as message_catcher:
+        with MessageCatchContext():
             handler = self._handler_map[type(message)]
             if isinstance(handler, tuple):
                 result = await handle_parallel(
@@ -99,4 +99,5 @@ class MessageBus:
                 result = await handle(
                     message, handler, self._deps, self._pre_hook, self._post_hook
                 )
-        return result, message_catcher.messages
+            messages = get_issued_messages()
+        return result, messages
