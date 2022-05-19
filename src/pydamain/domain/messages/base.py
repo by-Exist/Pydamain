@@ -26,8 +26,7 @@ class Message(metaclass=MessageMeta):
 
 
 def issue(message: Message):
-    messages = messages_context_var.get()
-    messages.add(message)
+    messages_context_var.get().add(message)
 
 
 def get_issued_messages():

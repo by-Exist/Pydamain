@@ -3,8 +3,16 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from pydamain.domain.messages import Command, Event, issue
+from pydamain.domain.messages import Message, issue
 from pydamain.domain.service import MessageBus
+
+
+class Command(Message):
+    ...
+
+
+class Event(Message):
+    ...
 
 
 async def example_command_handler(
