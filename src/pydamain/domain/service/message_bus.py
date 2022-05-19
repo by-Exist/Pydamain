@@ -54,8 +54,8 @@ class MessageBus:
         self,
         *,
         deps: dict[str, Any],
-        pre_hook: Optional[Hook[M, Any]] = None,
-        post_hook: Optional[Hook[M, Any]] = None,
+        pre_hook: Optional[Hook[Message, Any]] = None,
+        post_hook: Optional[Hook[Message, Any]] = None,
     ) -> None:
         self._deps: dict[str, Any] = deps
         self._handler_map: dict[
