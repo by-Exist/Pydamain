@@ -2,7 +2,7 @@
 
 [tool.poetry]
 name = "pydamain"
-version = "0.4.4"
+version = "0.4.5"
 description = "도메인 주도 설계 라이브러리."
 license = "Apache-2.0"
 authors = ["Jongbeom-Kwon <bolk9652@naver.com>"]
