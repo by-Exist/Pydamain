@@ -1,33 +1,35 @@
 from typing import Optional, Protocol, TypeVar
 
 
-AggregateType = TypeVar("AggregateType")
-IdentityType = TypeVar("IdentityType")
+A = TypeVar("A")
+I_contra = TypeVar("I_contra", contravariant=True)
 
 
-class CollectionOrientedRepositoryProtocol(Protocol[AggregateType, IdentityType]):
-    async def add(self, _aggregate: AggregateType) -> None:
+class CollectionOrientedRepositoryProtocol(Protocol[A, I_contra]):
+    async def add(self, _aggregate: A) -> None:
         ...
 
-    async def get(self, _id: IdentityType) -> Optional[AggregateType]:
+    async def get(self, _id: I_contra) -> Optional[A]:
         ...
 
-    async def delete(self, _aggregate: AggregateType) -> None:
-        ...
-
-    def next_identity(self) -> IdentityType:
+    async def delete(self, _aggregate: A) -> None:
         ...
 
 
-class PersistenceOrientedRepositoryProtocol(Protocol[AggregateType, IdentityType]):
-    async def save(self, _aggregate: AggregateType) -> None:
+class PersistenceOrientedRepositoryProtocol(Protocol[A, I_contra]):
+    async def save(self, _aggregate: A) -> None:
         ...
 
-    async def get(self, _id: IdentityType) -> Optional[AggregateType]:
+    async def get(self, _id: I_contra) -> Optional[A]:
         ...
 
-    async def delete(self, _aggregate: AggregateType) -> None:
+    async def delete(self, _aggregate: A) -> None:
         ...
 
-    def next_identity(self) -> IdentityType:
+
+I_co = TypeVar("I_co", covariant=True)
+
+
+class GenerateIdentifierProtocol(Protocol[I_co]):
+    def next_identity(self) -> I_co:
         ...

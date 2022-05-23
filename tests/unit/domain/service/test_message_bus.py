@@ -3,8 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from pydamain.domain.messages import Message, issue
-from pydamain.domain.service import MessageBus
+from pydamain.domain.messages import Message
+from pydamain.domain.service import MessageBus, issue
 
 
 class Command(Message):

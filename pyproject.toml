@@ -2,7 +2,7 @@
 
 [tool.poetry]
 name = "pydamain"
-version = "0.5.0"
+version = "0.6.0"
 description = "도메인 주도 설계 라이브러리."
 license = "Apache-2.0"
 authors = ["Jongbeom-Kwon <bolk9652@naver.com>"]
@@ -15,12 +15,8 @@ packages = [
 [tool.poetry.dependencies]
 python = "^3.10"
 typing-extensions = "^4.2.0"
-SQLAlchemy = {version = "^1.4.36", optional = true}
-aiosmtplib = {version = "^1.1.6", optional = true}
 
 [tool.poetry.extras]
-sqlalchemy = ["SQLAlchemy"]
-aiosmtplib = ["aiosmtplib"]
 
 [tool.poetry.dev-dependencies]
 black = "^22.3.0"

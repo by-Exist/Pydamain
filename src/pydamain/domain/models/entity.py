@@ -1,4 +1,3 @@
-from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -6,12 +5,12 @@ from typing_extensions import Self, dataclass_transform
 
 
 @dataclass_transform(
-    eq_default=True,
+    eq_default=False,
     order_default=False,
     kw_only_default=True,
     field_descriptors=(field,),
 )
-class EntityMeta(ABCMeta):
+class EntityMeta(type):
     def __new__(
         cls: type[Self], name: str, bases: tuple[type, ...], namespace: dict[str, Any]
     ) -> Self:
@@ -20,7 +19,4 @@ class EntityMeta(ABCMeta):
 
 
 class Entity(metaclass=EntityMeta):
-    @property
-    @abstractmethod
-    def identity(self) -> Any:
-        ...
+    ...

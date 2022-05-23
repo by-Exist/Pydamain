@@ -1,4 +1,3 @@
-from abc import ABCMeta
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -11,7 +10,7 @@ from typing_extensions import Self, dataclass_transform
     kw_only_default=True,
     field_descriptors=(field,),
 )
-class ValueObjectMeta(ABCMeta):
+class ValueObjectMeta(type):
     def __new__(
         cls: type[Self], name: str, bases: tuple[type, ...], namespace: dict[str, Any]
     ) -> Self:

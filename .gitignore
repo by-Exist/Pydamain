@@ -2,7 +2,5 @@ dist/
 __pycache__/
 *.egg-info/
 .pytest_cache/
-docker/
-.env
 .dockerignore
 poetry.lock

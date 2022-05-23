@@ -1,32 +1,31 @@
 import asyncio
+from contextvars import ContextVar
 from typing import (
     Any,
-    Optional,
     Awaitable,
     Callable,
     Literal,
+    Optional,
     TypeVar,
     overload,
 )
 
-from ..messages.base import Message, MessageCatchContext, get_issued_messages
+from pydamain.domain.messages import Message
 
 from .handler import Handler
 
-M = TypeVar("M", bound=Message)
+T = TypeVar("T")
 R = TypeVar("R")
-Handlers = tuple[Handler[M, R], ...]
-
-
-Hook = Callable[[M, Handler[M, R]], Awaitable[None]]
+Handlers = tuple[Handler[T, R], ...]
+Hook = Callable[[T, Handler[T, R]], Awaitable[None]]
 
 
 async def handle(
-    message: M,
-    handler: Handler[M, Any],
+    message: T,
+    handler: Handler[T, Any],
     deps: dict[str, Any],
-    pre_hook: Optional[Hook[M, Any]] = None,
-    post_hook: Optional[Hook[M, Any]] = None,
+    pre_hook: Optional[Hook[T, Any]] = None,
+    post_hook: Optional[Hook[T, Any]] = None,
 ):
     if pre_hook:
         await pre_hook(message, handler)
@@ -37,16 +36,30 @@ async def handle(
 
 
 async def handle_parallel(
-    message: M,
-    handlers: tuple[Handler[M, Any], ...],
+    message: T,
+    handlers: tuple[Handler[T, Any], ...],
     deps: dict[str, Any],
-    pre_hook: Optional[Hook[M, Any]] = None,
-    post_hook: Optional[Hook[M, Any]] = None,
+    pre_hook: Optional[Hook[T, Any]] = None,
+    post_hook: Optional[Hook[T, Any]] = None,
 ):
     coros = (
         handle(message, handler, deps, pre_hook, post_hook) for handler in handlers
     )
     return await asyncio.gather(*coros, return_exceptions=True)
+
+
+_message_catch_context_var: ContextVar[set[Any]] = ContextVar("messages")
+
+
+def issue(message: Any):
+    _message_catch_context_var.get().add(message)
+
+
+def get_issued_messages():
+    return _message_catch_context_var.get()
+
+
+M = TypeVar("M", bound=Message)
 
 
 class MessageBus:
@@ -59,13 +72,15 @@ class MessageBus:
     ) -> None:
         self._deps: dict[str, Any] = deps
         self._handler_map: dict[
-            type[Message], Handler[Message, Any] | Handlers[Message, Any]
+            type[Message], Handler[Any, Any] | Handlers[Any, Any]
         ] = {}
         self._pre_hook = pre_hook
         self._post_hook = post_hook
 
     def register(
-        self, message_type: type[M], handler: Handler[M, Any] | Handlers[M, Any]
+        self,
+        message_type: type[M],
+        handler: Handler[M, Any] | Handlers[M, Any],
     ):
         self._handler_map[message_type] = handler
 
@@ -89,15 +104,16 @@ class MessageBus:
         return result
 
     async def _dispatch(self, message: Message):
-        with MessageCatchContext():
-            handler = self._handler_map[type(message)]
-            if isinstance(handler, tuple):
-                result = await handle_parallel(
-                    message, handler, self._deps, self._pre_hook, self._post_hook
-                )
-            else:
-                result = await handle(
-                    message, handler, self._deps, self._pre_hook, self._post_hook
-                )
-            messages = get_issued_messages()
+        token = _message_catch_context_var.set(set())
+        handler = self._handler_map[type(message)]
+        if isinstance(handler, tuple):
+            result = await handle_parallel(
+                message, handler, self._deps, self._pre_hook, self._post_hook
+            )
+        else:
+            result = await handle(
+                message, handler, self._deps, self._pre_hook, self._post_hook
+            )
+        messages: set[Message] = _message_catch_context_var.get()
+        _message_catch_context_var.reset(token)
         return result, messages
