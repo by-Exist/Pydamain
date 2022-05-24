@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from pydamain.domain.messages import Message
-from pydamain.domain.service import MessageBus, issue
+from pydamain.service import MessageBus, issue
 
 
 class Command(Message):

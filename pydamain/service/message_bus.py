@@ -1,5 +1,4 @@
 import asyncio
-from contextvars import ContextVar
 from typing import (
     Any,
     Awaitable,
@@ -13,6 +12,7 @@ from typing import (
 from pydamain.domain.messages import Message
 
 from .handler import Handler
+from .message_catcher import MessageCatcher
 
 T = TypeVar("T")
 R = TypeVar("R")
@@ -46,17 +46,6 @@ async def handle_parallel(
         handle(message, handler, deps, pre_hook, post_hook) for handler in handlers
     )
     return await asyncio.gather(*coros, return_exceptions=True)
-
-
-_message_catch_context_var: ContextVar[set[Any]] = ContextVar("messages")
-
-
-def issue(message: Any):
-    _message_catch_context_var.get().add(message)
-
-
-def get_issued_messages():
-    return _message_catch_context_var.get()
 
 
 M = TypeVar("M", bound=Message)
@@ -104,16 +93,14 @@ class MessageBus:
         return result
 
     async def _dispatch(self, message: Message):
-        token = _message_catch_context_var.set(set())
         handler = self._handler_map[type(message)]
-        if isinstance(handler, tuple):
-            result = await handle_parallel(
-                message, handler, self._deps, self._pre_hook, self._post_hook
-            )
-        else:
-            result = await handle(
-                message, handler, self._deps, self._pre_hook, self._post_hook
-            )
-        messages: set[Message] = _message_catch_context_var.get()
-        _message_catch_context_var.reset(token)
-        return result, messages
+        with MessageCatcher() as message_catcher:
+            if isinstance(handler, tuple):
+                result = await handle_parallel(
+                    message, handler, self._deps, self._pre_hook, self._post_hook
+                )
+            else:
+                result = await handle(
+                    message, handler, self._deps, self._pre_hook, self._post_hook
+                )
+        return result, message_catcher.issued_messages
