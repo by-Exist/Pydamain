@@ -8,9 +8,6 @@ license = "Apache-2.0"
 authors = ["Jongbeom-Kwon <bolk9652@naver.com>"]
 readme = "README.md"
 repository = "https://github.com/by-Exist/pydamain"
-packages = [
-    { include = "pydamain", from = "src" }
-]
 
 [tool.poetry.dependencies]
 python = "^3.10"
