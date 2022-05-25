@@ -4,7 +4,7 @@ from typing import Protocol, TypeVar
 E = TypeVar("E", contravariant=True)
 
 
-class OutboxProtocol(Protocol[E]):
+class Outbox(Protocol[E]):
     async def put(self, _envelope: E) -> None:
         ...
 

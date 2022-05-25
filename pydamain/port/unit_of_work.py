@@ -3,7 +3,7 @@ from typing import Optional, Protocol
 from typing_extensions import Self
 
 
-class UnitOfWorkProtocol(Protocol):
+class UnitOfWork(Protocol):
     async def __aenter__(self) -> Self:
         ...
 
