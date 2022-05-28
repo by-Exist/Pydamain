@@ -1,10 +1,13 @@
-from typing import Protocol, TypeVar
+from typing import Iterable, Protocol, TypeVar
 
 
-E = TypeVar("E", contravariant=True)
+E = TypeVar("E")
 
 
 class Outbox(Protocol[E]):
+    async def all(self) -> Iterable[E]:
+        ...
+
     async def put(self, _envelope: E) -> None:
         ...
 
