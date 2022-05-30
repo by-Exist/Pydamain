@@ -16,8 +16,9 @@ from .message_catcher import MessageCatcher
 
 T = TypeVar("T")
 R = TypeVar("R")
-Handlers = tuple[Handler[T, R], ...]
-Hook = Callable[[T, Handler[T, R]], Awaitable[None]]
+
+PreHook = Callable[[T, Handler[T, R]], Awaitable[None]]
+PostHook = Callable[[T, Handler[T, R], R], Awaitable[None]]
 ExceptionHook = Callable[[T, Handler[T, R], Exception], Awaitable[None]]
 
 
@@ -25,8 +26,8 @@ async def handle(
     message: T,
     handler: Handler[T, Any],
     deps: dict[str, Any],
-    pre_hook: Optional[Hook[T, Any]] = None,
-    post_hook: Optional[Hook[T, Any]] = None,
+    pre_hook: Optional[PreHook[T, Any]] = None,
+    post_hook: Optional[PostHook[T, Any]] = None,
     exception_hook: Optional[ExceptionHook[T, Any]] = None,
 ):
     try:
@@ -34,7 +35,7 @@ async def handle(
             await pre_hook(message, handler)
         result = await handler(message, **deps)
         if post_hook:
-            await post_hook(message, handler)
+            await post_hook(message, handler, result)
         return result
     except Exception as e:
         if exception_hook:
@@ -46,8 +47,8 @@ async def handle_parallel(
     message: T,
     handlers: tuple[Handler[T, Any], ...],
     deps: dict[str, Any],
-    pre_hook: Optional[Hook[T, Any]] = None,
-    post_hook: Optional[Hook[T, Any]] = None,
+    pre_hook: Optional[PreHook[T, Any]] = None,
+    post_hook: Optional[PostHook[T, Any]] = None,
     exception_hook: Optional[ExceptionHook[T, Any]] = None,
 ):
     coros = (
@@ -58,6 +59,7 @@ async def handle_parallel(
 
 
 M = TypeVar("M", bound=Message)
+Handlers = tuple[Handler[T, R], ...]
 
 
 class MessageBus:
@@ -65,8 +67,8 @@ class MessageBus:
         self,
         *,
         deps: dict[str, Any],
-        pre_hook: Optional[Hook[Message, Any]] = None,
-        post_hook: Optional[Hook[Message, Any]] = None,
+        pre_hook: Optional[PreHook[Message, Any]] = None,
+        post_hook: Optional[PostHook[Message, Any]] = None,
         exception_hook: Optional[ExceptionHook[Message, Any]] = None,
     ) -> None:
         self._deps: dict[str, Any] = deps
