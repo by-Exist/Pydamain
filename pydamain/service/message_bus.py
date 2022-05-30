@@ -18,6 +18,7 @@ T = TypeVar("T")
 R = TypeVar("R")
 Handlers = tuple[Handler[T, R], ...]
 Hook = Callable[[T, Handler[T, R]], Awaitable[None]]
+ExceptionHook = Callable[[T, Handler[T, R], Exception], Awaitable[None]]
 
 
 async def handle(
@@ -26,13 +27,19 @@ async def handle(
     deps: dict[str, Any],
     pre_hook: Optional[Hook[T, Any]] = None,
     post_hook: Optional[Hook[T, Any]] = None,
+    exception_hook: Optional[ExceptionHook[T, Any]] = None,
 ):
-    if pre_hook:
-        await pre_hook(message, handler)
-    result = await handler(message, **deps)
-    if post_hook:
-        await post_hook(message, handler)
-    return result
+    try:
+        if pre_hook:
+            await pre_hook(message, handler)
+        result = await handler(message, **deps)
+        if post_hook:
+            await post_hook(message, handler)
+        return result
+    except Exception as e:
+        if exception_hook:
+            await exception_hook(message, handler, e)
+        raise e
 
 
 async def handle_parallel(
@@ -41,9 +48,11 @@ async def handle_parallel(
     deps: dict[str, Any],
     pre_hook: Optional[Hook[T, Any]] = None,
     post_hook: Optional[Hook[T, Any]] = None,
+    exception_hook: Optional[ExceptionHook[T, Any]] = None,
 ):
     coros = (
-        handle(message, handler, deps, pre_hook, post_hook) for handler in handlers
+        handle(message, handler, deps, pre_hook, post_hook, exception_hook)
+        for handler in handlers
     )
     return await asyncio.gather(*coros, return_exceptions=True)
 
@@ -58,6 +67,7 @@ class MessageBus:
         deps: dict[str, Any],
         pre_hook: Optional[Hook[Message, Any]] = None,
         post_hook: Optional[Hook[Message, Any]] = None,
+        exception_hook: Optional[ExceptionHook[Message, Any]] = None,
     ) -> None:
         self._deps: dict[str, Any] = deps
         self._handler_map: dict[
@@ -65,6 +75,7 @@ class MessageBus:
         ] = {}
         self._pre_hook = pre_hook
         self._post_hook = post_hook
+        self._exception_hook = exception_hook
 
     def register(
         self,
@@ -97,10 +108,20 @@ class MessageBus:
         with MessageCatcher() as message_catcher:
             if isinstance(handler, tuple):
                 result = await handle_parallel(
-                    message, handler, self._deps, self._pre_hook, self._post_hook
+                    message,
+                    handler,
+                    self._deps,
+                    self._pre_hook,
+                    self._post_hook,
+                    self._exception_hook,
                 )
             else:
                 result = await handle(
-                    message, handler, self._deps, self._pre_hook, self._post_hook
+                    message,
+                    handler,
+                    self._deps,
+                    self._pre_hook,
+                    self._post_hook,
+                    self._exception_hook,
                 )
         return result, message_catcher.issued_messages
